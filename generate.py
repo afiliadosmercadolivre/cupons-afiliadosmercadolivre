@@ -15,7 +15,7 @@ from googleapiclient.discovery import build
 # ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────────
 
 SPREADSHEET_ID = "1RM03Bn9rVpZ8KND_Y57YqK675z7peYnIekYvz2XnUMw"
-SHEET_NAME = "Controle"          # nome exato da aba
+SHEET_NAME = "Julho/26"          # nome exato da aba
 DATA_START_ROW = 6               # primeira linha de dados (depois dos cabeçalhos)
 OUTPUT_FILE = "index.html"
 
