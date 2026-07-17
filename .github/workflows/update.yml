@@ -1,0 +1,44 @@
+name: Atualizar Cupons
+
+on:
+  schedule:
+    # Roda a cada hora (minuto 0 de cada hora, horário UTC)
+    # UTC-3 (Brasília): 00:00 UTC = 21h BRT do dia anterior
+    - cron: "0 * * * *"
+
+  # Permite rodar manualmente pela aba Actions no GitHub
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # necessário para fazer commit do index.html
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: |
+          pip install --upgrade pip
+          pip install google-auth google-auth-httplib2 google-api-python-client
+
+      - name: Gerar index.html
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python generate.py
+
+      - name: Commit e push (se houve mudança)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          # Só faz commit se o arquivo realmente mudou
+          git diff --cached --quiet || git commit -m "chore: atualiza cupons $(date +'%d/%m/%Y %H:%M') UTC"
+          git push
