@@ -1,0 +1,425 @@
+"""
+generate.py
+Lê a aba de controle de cupons do Google Sheets via Service Account,
+filtra pelo mês atual e status "Tem verba" (coluna R),
+e gera o index.html final para o GitHub Pages.
+"""
+
+import json
+import os
+import re
+from datetime import datetime, date
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+# ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────────
+
+SPREADSHEET_ID = "1RM03Bn9rVpZ8KND_Y57YqK675z7peYnIekYvz2XnUMw"
+SHEET_NAME = "Controle"          # nome exato da aba
+DATA_START_ROW = 6               # primeira linha de dados (depois dos cabeçalhos)
+OUTPUT_FILE = "index.html"
+
+# Mapeamento de colunas (0-based dentro da linha de dados)
+COL = {
+    "acao":           0,   # A
+    "hora_inicio":    1,   # B
+    "dia_inicio":     2,   # C
+    "dia_fim":        3,   # D
+    "valor_desconto": 4,   # E
+    "min_compra":     5,   # F
+    "desconto_max":   6,   # G
+    "status_cupom":   7,   # H
+    "nome_cupom":     8,   # I
+    "id_cupom":       9,   # J
+    "texto_legal":   10,   # K
+    "tipo_cupom":    11,   # L
+    "containers":    12,   # M (col L da planilha real, ajuste se necessário)
+    "status_budget": 17,   # R — "Tem verba" / "Esgotado" etc.
+}
+
+# ── AUTENTICAÇÃO ─────────────────────────────────────────────────────────────
+
+def get_service():
+    """Autentica via Service Account JSON armazenado como secret."""
+    sa_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
+    if not sa_json:
+        raise RuntimeError("Secret GOOGLE_SERVICE_ACCOUNT_JSON não encontrado.")
+    info = json.loads(sa_json)
+    creds = service_account.Credentials.from_service_account_info(
+        info,
+        scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"],
+    )
+    return build("sheets", "v4", credentials=creds)
+
+
+def fetch_rows(service):
+    """Busca todas as linhas de dados da aba."""
+    range_name = f"{SHEET_NAME}!A{DATA_START_ROW}:R5000"
+    result = (
+        service.spreadsheets()
+        .values()
+        .get(spreadsheetId=SPREADSHEET_ID, range=range_name)
+        .execute()
+    )
+    return result.get("values", [])
+
+
+# ── PARSE & FILTRO ────────────────────────────────────────────────────────────
+
+def safe_get(row, idx, default=""):
+    try:
+        return row[idx].strip()
+    except (IndexError, AttributeError):
+        return default
+
+
+def parse_date(s):
+    """Converte 'DD/MM/YYYY' para date."""
+    try:
+        return datetime.strptime(s, "%d/%m/%Y").date()
+    except ValueError:
+        return None
+
+
+def is_current_month(dia_fim_str):
+    """Retorna True se o cupom ainda não expirou."""
+    d = parse_date(dia_fim_str)
+    if d is None:
+        return False
+    return d >= date.today()
+
+
+def extract_container(url_raw):
+    """Extrai nome do container e URL limpa."""
+    url = url_raw.strip().rstrip(".")
+    m = re.search(r"_Container_([^\s/\\]+)", url)
+    name = m.group(1) if m else ""
+    return url, name
+
+
+def parse_coupons(rows):
+    coupons = []
+    for row in rows:
+        acao          = safe_get(row, COL["acao"])
+        dia_inicio    = safe_get(row, COL["dia_inicio"])
+        dia_fim       = safe_get(row, COL["dia_fim"])
+        status_budget = safe_get(row, COL["status_budget"])
+
+        # Filtros principais
+        if not acao or not dia_inicio or not dia_fim:
+            continue
+        if status_budget != "Tem verba":
+            continue
+        if not is_current_month(dia_fim):
+            continue
+
+        container_raw = safe_get(row, COL["containers"])
+        container_url, container_name = extract_container(container_raw)
+
+        coupons.append({
+            "nome":           safe_get(row, COL["nome_cupom"]),
+            "acao":           acao,
+            "dia_inicio":     dia_inicio,
+            "dia_fim":        dia_fim,
+            "valor_desconto": safe_get(row, COL["valor_desconto"]),
+            "min_compra":     safe_get(row, COL["min_compra"]),
+            "desconto_max":   safe_get(row, COL["desconto_max"]),
+            "status":         safe_get(row, COL["status_cupom"]),
+            "container_url":  container_url,
+            "container_name": container_name,
+        })
+
+    return coupons
+
+
+# ── GERAÇÃO DO HTML ───────────────────────────────────────────────────────────
+
+def to_js_array(coupons):
+    """Serializa a lista para JS seguro (sem depender de json.dumps para HTML)."""
+    return json.dumps(coupons, ensure_ascii=False, indent=4)
+
+
+HTML_TEMPLATE = """\
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cupons Ativos — Afiliados Mercado Livre</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+    :root {{
+      --yellow:#FFE600;--yellow-soft:#FFF9CC;--blue-dark:#1A1A2E;
+      --blue-accent:#0F3460;--green:#00D09C;--green-faint:#E6FAF5;
+      --red:#FF4757;--text:#1A1A2E;--muted:#6B7280;
+      --border:#E5E7EB;--card-bg:#FFFFFF;--bg:#F7F8FA;
+    }}
+    *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+    body{{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}}
+    .site-header{{background:var(--blue-dark);padding:0 24px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--yellow)}}
+    .header-inner{{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}}
+    .header-logo{{display:flex;align-items:center;gap:10px}}
+    .mark{{width:32px;height:32px;background:var(--yellow);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--blue-dark);flex-shrink:0}}
+    .title{{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.01em}}
+    .subtitle{{font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.05em;text-transform:uppercase}}
+    .header-meta{{display:flex;align-items:center;gap:8px}}
+    .pulse-dot{{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}}
+    @keyframes pulse{{0%,100%{{opacity:1;transform:scale(1)}}50%{{opacity:.5;transform:scale(.8)}}}}
+    .live-label{{font-size:11px;font-weight:600;color:var(--green);letter-spacing:.08em;text-transform:uppercase}}
+    .last-updated{{font-size:11px;color:rgba(255,255,255,.4);font-family:'Space Mono',monospace}}
+    .hero-strip{{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue-accent) 100%);padding:32px 24px 28px}}
+    .hero-inner{{max-width:960px;margin:0 auto}}
+    .hero-eyebrow{{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:8px}}
+    .hero-heading{{font-size:clamp(22px,4vw,34px);font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.15;margin-bottom:12px}}
+    .hero-desc{{font-size:14px;color:rgba(255,255,255,.55);max-width:500px;line-height:1.6}}
+    .stats-row{{display:flex;gap:24px;margin-top:24px;flex-wrap:wrap}}
+    .stat-pill{{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 16px;display:flex;flex-direction:column;gap:2px}}
+    .stat-num{{font-size:22px;font-weight:700;color:var(--yellow);font-family:'Space Mono',monospace;letter-spacing:-.02em}}
+    .stat-label{{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}}
+    .filter-bar{{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;position:sticky;top:63px;z-index:90}}
+    .filter-inner{{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}}
+    .filter-label{{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}}
+    .filter-btn{{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}}
+    .filter-btn:hover{{border-color:var(--blue-dark);color:var(--blue-dark)}}
+    .filter-btn.active{{background:var(--blue-dark);border-color:var(--blue-dark);color:#fff}}
+    .search-box{{margin-left:auto;padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--text);outline:none;width:200px;transition:border-color .15s}}
+    .search-box:focus{{border-color:var(--blue-dark)}}
+    .list-section{{max-width:960px;margin:24px auto;padding:0 24px}}
+    .section-header{{display:flex;align-items:center;gap:10px;margin-bottom:16px}}
+    .section-title{{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}}
+    .count-badge{{background:var(--blue-dark);color:var(--yellow);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}}
+    #coupon-list{{display:flex;flex-direction:column;gap:10px}}
+    .coupon-card{{background:var(--card-bg);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;transition:box-shadow .18s,border-color .18s}}
+    .coupon-card:hover{{border-color:var(--blue-dark);box-shadow:0 4px 20px rgba(26,26,46,.08)}}
+    .coupon-card.expires-today{{border-color:var(--red)}}
+    .coupon-card.expires-today .card-side{{background:var(--red)}}
+    .card-side{{background:var(--blue-dark);width:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px 8px;flex-shrink:0}}
+    .card-discount-num{{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--yellow);line-height:1}}
+    .card-discount-pct{{font-size:10px;font-weight:700;color:rgba(255,230,0,.7);letter-spacing:.04em}}
+    .card-body{{padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}}
+    .card-top{{display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
+    .coupon-name{{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.01em}}
+    .category-tag{{font-size:10px;font-weight:600;background:var(--yellow-soft);color:var(--blue-accent);padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.05em}}
+    .card-details{{display:flex;gap:16px;flex-wrap:wrap;align-items:center}}
+    .detail-item{{display:flex;flex-direction:column;gap:1px}}
+    .detail-label{{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}}
+    .detail-value{{font-size:13px;font-weight:600;color:var(--text)}}
+    .detail-value.green{{color:#059669}}
+    .card-dates{{display:flex;align-items:center;gap:6px}}
+    .date-range{{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace}}
+    .expiry-badge{{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}}
+    .expiry-badge.active{{background:var(--green-faint);color:#059669}}
+    .expiry-badge.today{{background:#FEE2E2;color:var(--red)}}
+    .expiry-badge.ending-soon{{background:#FEF3C7;color:#D97706}}
+    .container-row{{display:flex;align-items:center;gap:6px;margin-top:2px}}
+    .container-link{{font-size:12px;color:var(--blue-accent);text-decoration:none;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px}}
+    .container-link:hover{{text-decoration:underline}}
+    .site-wide-badge{{font-size:10px;font-weight:700;background:#EDE9FE;color:#6D28D9;padding:2px 8px;border-radius:12px;letter-spacing:.04em}}
+    .card-action{{padding:14px 16px;display:flex;align-items:center}}
+    .copy-btn{{background:var(--yellow);border:none;border-radius:8px;padding:10px 16px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--blue-dark);cursor:pointer;white-space:nowrap;transition:transform .12s,background .12s;letter-spacing:.02em}}
+    .copy-btn:hover{{transform:scale(1.04);background:#FFD700}}
+    .copy-btn.copied{{background:var(--green);color:#fff}}
+    .empty-state{{text-align:center;padding:48px 24px;color:var(--muted);font-size:14px;display:none}}
+    .empty-state.visible{{display:block}}
+    footer{{text-align:center;padding:32px 24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);margin-top:40px}}
+    .generated-at{{font-family:'Space Mono',monospace;font-size:11px;margin-top:4px}}
+    @media(max-width:600px){{
+      .coupon-card{{grid-template-columns:auto 1fr}}
+      .card-action{{display:none}}
+      .search-box{{width:130px}}
+      .last-updated{{display:none}}
+    }}
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="mark">ML</div>
+      <div>
+        <div class="title">Cupons Ativos</div>
+        <div class="subtitle">Afiliados · Mercado Livre</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <div class="pulse-dot"></div>
+      <span class="live-label">Ao vivo</span>
+      <span class="last-updated" id="ts">{generated_at}</span>
+    </div>
+  </div>
+</header>
+
+<div class="hero-strip">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">{month_label} · Com verba disponível</div>
+    <h1 class="hero-heading">Cupons de desconto<br>prontos para divulgar</h1>
+    <p class="hero-desc">Todos os cupons abaixo têm verba confirmada no controle de Afiliados. Copie o código e inclua no seu conteúdo.</p>
+    <div class="stats-row" id="stats-row"></div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <div class="filter-inner">
+    <span class="filter-label">Lista</span>
+    <button class="filter-btn active" data-filter="all">Todos</button>
+    <button class="filter-btn" data-filter="Fashion">Moda</button>
+    <button class="filter-btn" data-filter="Furnishing">Casa</button>
+    <button class="filter-btn" data-filter="Sellers">Sellers</button>
+    <button class="filter-btn" data-filter="Outros">Outros</button>
+    <input class="search-box" type="search" placeholder="Buscar cupom…" id="search-input" />
+  </div>
+</div>
+
+<main class="list-section">
+  <div class="section-header">
+    <span class="section-title">Cupons com verba</span>
+    <span class="count-badge" id="count-badge">0</span>
+  </div>
+  <div id="coupon-list"></div>
+  <div class="empty-state" id="empty-state">Nenhum cupom encontrado para esse filtro.</div>
+</main>
+
+<footer>
+  <div>Fonte: Controle Cupons 2026 – Afiliados</div>
+  <div class="generated-at">Gerado automaticamente em {generated_at}</div>
+</footer>
+
+<script>
+const COUPONS = {coupons_json};
+
+function parseDate(s){{const[d,m,y]=s.split('/').map(Number);return new Date(y,m-1,d)}}
+function today(){{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())}}
+function daysLeft(s){{return Math.round((parseDate(s)-today())/86400000)}}
+function expiryInfo(c){{
+  const d=daysLeft(c.dia_fim);
+  if(d<0)return{{label:'Expirado',cls:''}};
+  if(d===0)return{{label:'Expira hoje',cls:'today'}};
+  if(d<=3)return{{label:d+'d restantes',cls:'ending-soon'}};
+  return{{label:'Válido até '+c.dia_fim,cls:'active'}};
+}}
+function discountNum(v){{return parseInt(v)}}
+function categoryShort(a){{
+  if(/fashion/i.test(a))return'Moda';
+  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Casa';
+  if(/sellers/i.test(a))return'Sellers';
+  if(/health/i.test(a))return'Saúde';
+  if(/beauty/i.test(a))return'Beleza';
+  if(/sports/i.test(a))return'Esportes';
+  return a;
+}}
+let activeFilter='all',searchQuery='';
+function matchesFilter(c){{
+  if(activeFilter!=='all'){{
+    const cat=categoryShort(c.acao);
+    if(activeFilter==='Fashion'&&cat!=='Moda')return false;
+    if(activeFilter==='Furnishing'&&cat!=='Casa')return false;
+    if(activeFilter==='Sellers'&&cat!=='Sellers')return false;
+    if(activeFilter==='Outros'&&!['Outros','Saúde','Beleza','Esportes'].includes(cat))return false;
+  }}
+  if(searchQuery){{
+    const q=searchQuery.toLowerCase();
+    return c.nome.toLowerCase().includes(q)||c.acao.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);
+  }}
+  return true;
+}}
+function renderCard(c){{
+  const exp=expiryInfo(c);
+  const todayE=daysLeft(c.dia_fim)===0;
+  const cat=categoryShort(c.acao);
+  const containerHTML=c.container_url
+    ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">/_Container_${{c.container_name}}</a>`
+    :`<span class="site-wide-badge">🌐 Todo o site</span>`;
+  return`<div class="coupon-card ${{todayE?'expires-today':''}}">
+    <div class="card-side">
+      <div class="card-discount-num">${{discountNum(c.valor_desconto)}}</div>
+      <div class="card-discount-pct">OFF%</div>
+    </div>
+    <div class="card-body">
+      <div class="card-top">
+        <span class="coupon-name">${{c.nome}}</span>
+        <span class="category-tag">${{cat}}</span>
+      </div>
+      <div class="card-details">
+        <div class="detail-item"><span class="detail-label">Desconto</span><span class="detail-value green">${{c.valor_desconto}}</span></div>
+        <div class="detail-item"><span class="detail-label">Mínimo</span><span class="detail-value">R$${{c.min_compra}}</span></div>
+        <div class="detail-item"><span class="detail-label">Máximo</span><span class="detail-value">R$${{c.desconto_max}}</span></div>
+        <div class="card-dates">
+          <span class="date-range">${{c.dia_inicio}} → ${{c.dia_fim}}</span>
+          <span class="expiry-badge ${{exp.cls}}">${{exp.label}}</span>
+        </div>
+      </div>
+      <div class="container-row"><span style="font-size:10px;color:var(--muted)">📦</span><span class="detail-label" style="flex-shrink:0">Lista:</span>${{containerHTML}}</div>
+    </div>
+    <div class="card-action">
+      <button class="copy-btn" onclick="copyCoupon(this,'${{c.nome}}')">Copiar</button>
+    </div>
+  </div>`;
+}}
+function render(){{
+  const visible=COUPONS.filter(matchesFilter);
+  document.getElementById('coupon-list').innerHTML=visible.map(renderCard).join('');
+  document.getElementById('count-badge').textContent=visible.length;
+  document.getElementById('empty-state').classList.toggle('visible',visible.length===0);
+  const maxD=COUPONS.length?Math.max(...COUPONS.map(c=>discountNum(c.valor_desconto))):0;
+  const exp=COUPONS.filter(c=>daysLeft(c.dia_fim)===0);
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-pill"><div class="stat-num">${{COUPONS.length}}</div><div class="stat-label">Cupons ativos</div></div>
+    <div class="stat-pill"><div class="stat-num">${{maxD}}%</div><div class="stat-label">Maior desconto</div></div>
+    ${{exp.length?`<div class="stat-pill"><div class="stat-num" style="color:#FF4757">${{exp.length}}</div><div class="stat-label">Expiram hoje</div></div>`:''}}
+  `;
+}}
+function copyCoupon(btn,code){{
+  navigator.clipboard.writeText(code).catch(()=>{{
+    const el=document.createElement('textarea');el.value=code;
+    document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();
+  }});
+  btn.textContent='✓ Copiado!';btn.classList.add('copied');
+  setTimeout(()=>{{btn.textContent='Copiar';btn.classList.remove('copied')}},2000);
+}}
+document.querySelectorAll('.filter-btn').forEach(b=>{{
+  b.addEventListener('click',()=>{{
+    document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');activeFilter=b.dataset.filter;render();
+  }});
+}});
+document.getElementById('search-input').addEventListener('input',e=>{{searchQuery=e.target.value.trim();render()}});
+render();
+</script>
+</body>
+</html>
+"""
+
+
+def generate_html(coupons):
+    now = datetime.now()
+    month_names = [
+        "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ]
+    month_label = f"{month_names[now.month]} {now.year}"
+    generated_at = now.strftime("%d/%m/%Y %H:%M")
+
+    html = HTML_TEMPLATE.format(
+        generated_at=generated_at,
+        month_label=month_label,
+        coupons_json=to_js_array(coupons),
+    )
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"✅ {OUTPUT_FILE} gerado com {len(coupons)} cupons em {generated_at}")
+
+
+# ── MAIN ──────────────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    print("🔐 Autenticando na Google Sheets API…")
+    service = get_service()
+
+    print("📊 Buscando dados da planilha…")
+    rows = fetch_rows(service)
+    print(f"   {len(rows)} linhas lidas")
+
+    coupons = parse_coupons(rows)
+    print(f"   {len(coupons)} cupons com 'Tem verba' no mês atual")
+
+    generate_html(coupons)
