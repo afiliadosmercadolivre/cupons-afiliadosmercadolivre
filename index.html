@@ -3,193 +3,168 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cupons Ativos — Afiliados Mercado Livre</title>
+  <title>Cupons Afiliados — Mercado Livre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
     :root {
-      --ml-yellow: #FFE600;
-      --ml-yellow-hover: #FFD000;
-      --ml-blue: #2D3277;
-      --ml-blue-light: #3D44A0;
-      --ml-text: #333333;
-      --ml-muted: #666666;
-      --ml-border: #E5E5E5;
-      --ml-bg: #EDEDED;
-      --ml-white: #FFFFFF;
-      --ml-green: #00A650;
-      --ml-red: #F23D4F;
-      --ml-orange: #FF7733;
-      --radius: 4px;
+      --yellow: #FFE600;
+      --yellow-dark: #E6CF00;
+      --blue: #0A0080;
+      --blue-mid: #1A0099;
+      --white: #FFFFFF;
+      --bg: #F7F7F7;
+      --text: #1A1A1A;
+      --muted: #666;
+      --border: #E8E8E8;
+      --green: #00A650;
+      --red: #E8003C;
+      --orange: #FF6000;
+      --radius-pill: 50px;
+      --radius-card: 12px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', 'Proxima Nova', Arial, sans-serif; background: var(--ml-bg); color: var(--ml-text); font-size: 14px; }
+    body { font-family: 'Montserrat', Arial, sans-serif; background: var(--bg); color: var(--text); }
 
-    /* HEADER */
-    .ml-header { background: var(--ml-yellow); padding: 0; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
-    .ml-header-inner { max-width: 1200px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 24px; }
-    .ml-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
-    .ml-logo-icon { width: 36px; height: 36px; background: var(--ml-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .ml-logo-icon svg { width: 22px; height: 22px; }
-    .ml-logo-text { font-size: 18px; font-weight: 700; color: var(--ml-blue); letter-spacing: -.01em; line-height: 1; }
-    .ml-logo-sub { font-size: 10px; font-weight: 600; color: var(--ml-blue); opacity: .7; letter-spacing: .04em; text-transform: uppercase; }
-    .ml-header-meta { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-    .ml-updated { font-size: 11px; color: var(--ml-blue); opacity: .7; }
+    /* ── HEADER ── */
+    .hdr { background: var(--yellow); padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+    .hdr-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .hdr-pill { background: var(--blue); color: var(--yellow); font-size: 13px; font-weight: 900; padding: 6px 18px; border-radius: var(--radius-pill); letter-spacing: -.01em; white-space: nowrap; }
+    .hdr-sub { font-size: 12px; font-weight: 700; color: var(--blue); opacity: .65; text-transform: uppercase; letter-spacing: .06em; }
+    .hdr-ts { font-size: 12px; font-weight: 600; color: var(--blue); opacity: .6; }
 
-    /* BREADCRUMB */
-    .ml-breadcrumb { background: var(--ml-white); border-bottom: 1px solid var(--ml-border); padding: 8px 16px; }
-    .ml-breadcrumb-inner { max-width: 1200px; margin: 0 auto; font-size: 12px; color: var(--ml-muted); }
-    .ml-breadcrumb a { color: var(--ml-blue); text-decoration: none; }
-    .ml-breadcrumb a:hover { text-decoration: underline; }
+    /* ── HERO ── */
+    .hero { background: var(--blue); padding: 36px 24px 32px; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .hero-left h1 { font-size: clamp(24px,3.5vw,40px); font-weight: 900; color: var(--white); line-height: 1.1; letter-spacing: -.02em; }
+    .hero-left h1 span { color: var(--yellow); }
+    .hero-left p { font-size: 14px; color: rgba(255,255,255,.6); margin-top: 8px; font-weight: 600; }
+    .hero-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hero-stat { background: rgba(255,255,255,.08); border: 1.5px solid rgba(255,230,0,.25); border-radius: var(--radius-pill); padding: 10px 20px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .hero-stat-n { font-size: 26px; font-weight: 900; color: var(--yellow); line-height: 1; }
+    .hero-stat-l { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .08em; }
 
-    /* MAIN LAYOUT */
-    .ml-layout { max-width: 1200px; margin: 16px auto; padding: 0 16px; display: grid; grid-template-columns: 220px 1fr; gap: 16px; }
+    /* ── TOOLBAR ── */
+    .toolbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 12px 24px; position: sticky; top: 64px; z-index: 90; }
+    .toolbar-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { background: var(--white); border: 2px solid var(--border); color: var(--muted); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: var(--radius-pill); cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .filter-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .filter-btn.active { background: var(--blue); border-color: var(--blue); color: var(--yellow); }
+    .filter-btn .cnt { font-size: 11px; opacity: .75; margin-left: 4px; }
+    .search { margin-left: auto; padding: 8px 16px; border: 2px solid var(--border); border-radius: var(--radius-pill); font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 600; outline: none; width: 220px; transition: border-color .15s; }
+    .search:focus { border-color: var(--blue); }
 
-    /* SIDEBAR */
-    .ml-sidebar { display: flex; flex-direction: column; gap: 12px; }
-    .ml-filter-box { background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); overflow: hidden; }
-    .ml-filter-title { padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--ml-text); border-bottom: 1px solid var(--ml-border); }
-    .ml-filter-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; transition: background .1s; font-size: 13px; border: none; background: none; width: 100%; text-align: left; color: var(--ml-text); }
-    .ml-filter-item:hover { background: #F5F5F5; }
-    .ml-filter-item.active { color: var(--ml-blue); font-weight: 600; }
-    .ml-filter-item.active::before { content: ''; width: 3px; height: 16px; background: var(--ml-blue); border-radius: 2px; margin-right: 4px; flex-shrink: 0; }
-    .ml-filter-count { margin-left: auto; font-size: 11px; color: var(--ml-muted); background: #F0F0F0; padding: 1px 6px; border-radius: 10px; }
+    /* ── LIST ── */
+    .list-wrap { max-width: 1100px; margin: 24px auto; padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
 
-    .ml-stat-box { background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); padding: 16px; }
-    .ml-stat-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #F5F5F5; font-size: 13px; }
-    .ml-stat-item:last-child { border-bottom: none; }
-    .ml-stat-val { font-weight: 700; color: var(--ml-blue); }
+    /* ── CARD ── */
+    .card { background: var(--white); border-radius: var(--radius-card); border: 1.5px solid var(--border); display: grid; grid-template-columns: 110px 1fr auto; overflow: hidden; transition: box-shadow .18s, transform .18s; }
+    .card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.1); transform: translateY(-1px); }
 
-    /* CONTENT */
-    .ml-content { display: flex; flex-direction: column; gap: 12px; }
-    .ml-toolbar { background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
-    .ml-toolbar-count { font-size: 13px; color: var(--ml-muted); }
-    .ml-toolbar-count strong { color: var(--ml-text); }
-    .ml-search { margin-left: auto; padding: 7px 12px; border: 1px solid var(--ml-border); border-radius: var(--radius); font-size: 13px; font-family: inherit; outline: none; width: 220px; transition: border-color .15s; }
-    .ml-search:focus { border-color: var(--ml-blue); }
+    /* accent stripe via left border */
+    .card.site { border-left: 5px solid var(--green); }
+    .card.hoje { border-left: 5px solid var(--red); }
+    .card.breve { border-left: 5px solid var(--orange); }
 
-    /* COUPON CARD */
-    .ml-card { background: var(--ml-white); border: 1px solid var(--ml-border); border-radius: var(--radius); display: grid; grid-template-columns: 100px 1fr auto; align-items: stretch; transition: box-shadow .15s; overflow: hidden; }
-    .ml-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.1); }
-    .ml-card.mar-aberto { border-left: 3px solid var(--ml-green); }
-    .ml-card.expira-hoje { border-left: 3px solid var(--ml-red); }
-    .ml-card.expira-breve { border-left: 3px solid var(--ml-orange); }
+    /* badge */
+    .card-badge { background: var(--blue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 0; }
+    .card.hoje .card-badge { background: var(--red); }
+    .card.site .card-badge { background: var(--green); }
+    .badge-n { font-size: 36px; font-weight: 900; color: var(--yellow); line-height: 1; font-family: 'Montserrat', sans-serif; }
+    .card.hoje .badge-n, .card.site .badge-n { color: var(--white); }
+    .badge-unit { font-size: 13px; font-weight: 800; color: rgba(255,230,0,.7); margin-top: -2px; }
+    .card.hoje .badge-unit, .card.site .badge-unit { color: rgba(255,255,255,.7); }
 
-    .ml-card-badge { background: var(--ml-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 16px 8px; }
-    .ml-card.expira-hoje .ml-card-badge { background: var(--ml-red); }
-    .ml-badge-num { font-size: 28px; font-weight: 700; color: var(--ml-yellow); line-height: 1; font-family: Arial, sans-serif; }
-    .ml-badge-pct { font-size: 11px; font-weight: 600; color: rgba(255,230,0,.8); }
-    .ml-badge-off { font-size: 10px; color: rgba(255,230,0,.6); letter-spacing: .04em; text-transform: uppercase; }
+    /* body */
+    .card-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .coupon-name { font-size: 20px; font-weight: 900; color: var(--text); letter-spacing: .01em; }
+    .pill-tag { font-size: 10px; font-weight: 800; padding: 3px 10px; border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: .06em; }
+    .pill-site { background: #E6F9EE; color: var(--green); }
+    .pill-cat { background: #EFEFFF; color: var(--blue); }
+    .pill-hot { background: #FFF0E6; color: var(--orange); }
+    .pill-expira { background: #FFE6EC; color: var(--red); }
 
-    .ml-card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-    .ml-card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .ml-coupon-code { font-size: 18px; font-weight: 700; color: var(--ml-text); letter-spacing: .02em; font-family: 'Courier New', monospace; }
-    .ml-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: .04em; }
-    .ml-tag-site { background: #EBF5FF; color: var(--ml-blue); }
-    .ml-tag-cat { background: #F0F0F0; color: var(--ml-muted); }
-    .ml-tag-hot { background: #FFF0EC; color: var(--ml-orange); }
+    .card-nums { display: flex; gap: 24px; flex-wrap: wrap; }
+    .num-item { display: flex; flex-direction: column; gap: 1px; }
+    .num-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+    .num-val { font-size: 15px; font-weight: 800; color: var(--text); }
+    .num-val.green { color: var(--green); }
 
-    .ml-card-details { display: flex; gap: 20px; flex-wrap: wrap; }
-    .ml-detail { display: flex; flex-direction: column; gap: 1px; }
-    .ml-detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--ml-muted); }
-    .ml-detail-val { font-size: 14px; font-weight: 600; color: var(--ml-text); }
-    .ml-detail-val.green { color: var(--ml-green); }
+    .card-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .date-txt { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .expiry-pill { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: var(--radius-pill); }
+    .expiry-pill.ok { background: #E6F9EE; color: var(--green); }
+    .expiry-pill.hoje { background: #FFE6EC; color: var(--red); }
+    .expiry-pill.breve { background: #FFF0E6; color: var(--orange); }
 
-    .ml-card-footer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    .ml-date-range { font-size: 12px; color: var(--ml-muted); }
-    .ml-expiry { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 2px; }
-    .ml-expiry.ok { background: #F0FAF5; color: var(--ml-green); }
-    .ml-expiry.hoje { background: #FFF0F0; color: var(--ml-red); }
-    .ml-expiry.breve { background: #FFF5EC; color: var(--ml-orange); }
+    .container-row { display: flex; align-items: center; gap: 6px; }
+    .container-icon { font-size: 12px; }
+    .container-lbl { font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+    .container-link { font-size: 12px; font-weight: 700; color: var(--blue); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
+    .container-link:hover { text-decoration: underline; }
+    .site-pill { font-size: 11px; font-weight: 800; background: #E6F9EE; color: var(--green); padding: 3px 10px; border-radius: var(--radius-pill); }
 
-    .ml-container-row { display: flex; align-items: center; gap: 6px; }
-    .ml-container-label { font-size: 11px; color: var(--ml-muted); flex-shrink: 0; }
-    .ml-container-link { font-size: 12px; color: var(--ml-blue); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
-    .ml-container-link:hover { text-decoration: underline; }
-    .ml-site-wide { font-size: 11px; font-weight: 700; background: #F0FAF5; color: var(--ml-green); padding: 2px 8px; border-radius: 2px; }
+    /* action */
+    .card-action { padding: 20px 16px; display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--border); min-width: 120px; }
+    .copy-btn { background: var(--yellow); border: none; border-radius: var(--radius-pill); padding: 11px 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 900; color: var(--blue); cursor: pointer; transition: background .12s, transform .1s; width: 100%; white-space: nowrap; }
+    .copy-btn:hover { background: var(--yellow-dark); transform: scale(1.03); }
+    .copy-btn.copied { background: var(--green); color: white; }
 
-    .ml-card-action { padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-left: 1px solid var(--ml-border); min-width: 100px; }
-    .ml-copy-btn { background: var(--ml-yellow); border: none; border-radius: var(--radius); padding: 10px 16px; font-size: 13px; font-weight: 700; color: var(--ml-text); cursor: pointer; width: 100%; transition: background .12s; font-family: inherit; }
-    .ml-copy-btn:hover { background: var(--ml-yellow-hover); }
-    .ml-copy-btn.copied { background: var(--ml-green); color: white; }
+    /* empty */
+    .empty { text-align: center; padding: 64px 24px; color: var(--muted); font-size: 15px; font-weight: 700; background: var(--white); border-radius: var(--radius-card); border: 1.5px solid var(--border); display: none; }
+    .empty.show { display: block; }
 
-    /* EMPTY */
-    .ml-empty { text-align: center; padding: 48px; color: var(--ml-muted); background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); display: none; }
-    .ml-empty.visible { display: block; }
+    /* footer */
+    .footer { text-align: center; padding: 32px 24px; font-size: 12px; font-weight: 600; color: var(--muted); border-top: 1px solid var(--border); margin-top: 16px; }
 
-    /* FOOTER */
-    .ml-footer { max-width: 1200px; margin: 24px auto 32px; padding: 0 16px; text-align: center; font-size: 12px; color: var(--ml-muted); }
-
-    @media (max-width: 768px) {
-      .ml-layout { grid-template-columns: 1fr; }
-      .ml-sidebar { display: none; }
-      .ml-card { grid-template-columns: 80px 1fr; }
-      .ml-card-action { display: none; }
-      .ml-search { width: 140px; }
+    @media (max-width: 640px) {
+      .card { grid-template-columns: 80px 1fr; }
+      .card-action { display: none; }
+      .search { width: 130px; }
+      .badge-n { font-size: 26px; }
     }
   </style>
 </head>
 <body>
 
-<header class="ml-header">
-  <div class="ml-header-inner">
-    <a class="ml-logo" href="#">
-      <div class="ml-logo-icon">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" fill="white" opacity=".9"/>
-          <path d="M8 11l3 3 5-5" stroke="#FFE600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div>
-        <div class="ml-logo-text">Cupons Afiliados</div>
-        <div class="ml-logo-sub">Mercado Livre</div>
-      </div>
-    </a>
-    <div class="ml-header-meta">
-      <span class="ml-updated">Atualizado em 20/07/2026 12:19</span>
-    </div>
-  </div>
+<header class="hdr">
+  <a class="hdr-logo" href="#">
+    <div class="hdr-pill">Cupons Afiliados</div>
+    <span class="hdr-sub">Mercado Livre</span>
+  </a>
+  <span class="hdr-ts">Atualizado em 20/07/2026 12:32</span>
 </header>
 
-<div class="ml-breadcrumb">
-  <div class="ml-breadcrumb-inner">
-    <a href="#">Início</a> &rsaquo; <strong>Cupons ativos — Julho 2026</strong>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <h1>Cupons com <span>verba disponível</span><br>— Julho 2026</h1>
+      <p>Somente cupons ativos com budget confirmado · Atualização automática a cada hora</p>
+    </div>
+    <div class="hero-pills" id="hero-stats"></div>
   </div>
 </div>
 
-<div class="ml-layout">
-  <!-- SIDEBAR -->
-  <aside class="ml-sidebar">
-    <div class="ml-filter-box">
-      <div class="ml-filter-title">Categorias</div>
-      <button class="ml-filter-item active" data-filter="all">Todos <span class="ml-filter-count" id="count-all">0</span></button>
-      <button class="ml-filter-item" data-filter="mar_aberto">🌐 Todo o site <span class="ml-filter-count" id="count-mar">0</span></button>
-      <button class="ml-filter-item" data-filter="Fashion">Moda <span class="ml-filter-count" id="count-fashion">0</span></button>
-      <button class="ml-filter-item" data-filter="Furnishing">Casa <span class="ml-filter-count" id="count-furn">0</span></button>
-      <button class="ml-filter-item" data-filter="Sellers">Sellers <span class="ml-filter-count" id="count-sellers">0</span></button>
-      <button class="ml-filter-item" data-filter="Outros">Outros <span class="ml-filter-count" id="count-outros">0</span></button>
-    </div>
-    <div class="ml-stat-box">
-      <div class="ml-filter-title" style="padding:12px 0 8px;border:none">Resumo</div>
-      <div class="ml-stat-item"><span>Total ativos</span><span class="ml-stat-val" id="stat-total">0</span></div>
-      <div class="ml-stat-item"><span>Todo o site</span><span class="ml-stat-val" id="stat-mar">0</span></div>
-      <div class="ml-stat-item"><span>Maior desconto</span><span class="ml-stat-val" id="stat-max">0%</span></div>
-      <div class="ml-stat-item"><span>Expiram hoje</span><span class="ml-stat-val" id="stat-hoje" style="color:var(--ml-red)">0</span></div>
-    </div>
-  </aside>
-
-  <!-- CONTENT -->
-  <div class="ml-content">
-    <div class="ml-toolbar">
-      <span class="ml-toolbar-count"><strong id="count-visible">0</strong> cupons encontrados</span>
-      <input class="ml-search" type="search" placeholder="Buscar cupom…" id="search-input"/>
-    </div>
-    <div id="coupon-list"></div>
-    <div class="ml-empty" id="empty-state">Nenhum cupom encontrado para esse filtro.</div>
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <button class="filter-btn active" data-f="all">Todos <span class="cnt" id="c-all"></span></button>
+    <button class="filter-btn" data-f="mar">🌐 Todo o site <span class="cnt" id="c-mar"></span></button>
+    <button class="filter-btn" data-f="Fashion">Moda <span class="cnt" id="c-fas"></span></button>
+    <button class="filter-btn" data-f="Furnishing">Casa <span class="cnt" id="c-furn"></span></button>
+    <button class="filter-btn" data-f="Sellers">Sellers <span class="cnt" id="c-sel"></span></button>
+    <button class="filter-btn" data-f="Outros">Outros <span class="cnt" id="c-out"></span></button>
+    <input class="search" id="search" type="search" placeholder="🔍  Buscar cupom…"/>
   </div>
 </div>
 
-<div class="ml-footer">
-  Fonte: Controle Cupons Julho 2026 · Afiliados Mercado Livre · Atualização automática a cada hora
+<div class="list-wrap">
+  <div id="list"></div>
+  <div class="empty" id="empty">Nenhum cupom encontrado para esse filtro.</div>
+</div>
+
+<div class="footer">
+  Fonte: Controle Cupons Julho 2026 · Afiliados Mercado Livre
 </div>
 
 <script>
@@ -202,7 +177,6 @@ const COUPONS = [
     "valor_desconto": "15%",
     "min_compra": "79",
     "desconto_max": "60",
-    "status": "Ativo",
     "container_url": "",
     "container_name": "",
     "is_mar_aberto": true,
@@ -217,7 +191,6 @@ const COUPONS = [
     "valor_desconto": "18%",
     "min_compra": "29",
     "desconto_max": "100",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_aff-container-a",
     "container_name": "aff-container-a",
     "is_mar_aberto": false,
@@ -232,7 +205,6 @@ const COUPONS = [
     "valor_desconto": "18%",
     "min_compra": "29",
     "desconto_max": "100",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_aff-container-b",
     "container_name": "aff-container-b",
     "is_mar_aberto": false,
@@ -247,7 +219,6 @@ const COUPONS = [
     "valor_desconto": "15%",
     "min_compra": "29",
     "desconto_max": "100",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_aff-container-d",
     "container_name": "aff-container-d",
     "is_mar_aberto": false,
@@ -262,7 +233,6 @@ const COUPONS = [
     "valor_desconto": "20%",
     "min_compra": "29",
     "desconto_max": "100",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_aff-container-c",
     "container_name": "aff-container-c",
     "is_mar_aberto": false,
@@ -277,7 +247,6 @@ const COUPONS = [
     "valor_desconto": "25%",
     "min_compra": "29",
     "desconto_max": "100",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-1",
     "container_name": "aff-list-1",
     "is_mar_aberto": false,
@@ -292,7 +261,6 @@ const COUPONS = [
     "valor_desconto": "20%",
     "min_compra": "49",
     "desconto_max": "60",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_fashion-aff-jul",
     "container_name": "fashion-aff-jul",
     "is_mar_aberto": false,
@@ -307,7 +275,6 @@ const COUPONS = [
     "valor_desconto": "20%",
     "min_compra": "49",
     "desconto_max": "60",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_grandes-marcas-fashion-2026",
     "container_name": "grandes-marcas-fashion-2026",
     "is_mar_aberto": false,
@@ -322,7 +289,6 @@ const COUPONS = [
     "valor_desconto": "20%",
     "min_compra": "79",
     "desconto_max": "60",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_fh-afiliados-2026",
     "container_name": "fh-afiliados-2026",
     "is_mar_aberto": false,
@@ -337,7 +303,6 @@ const COUPONS = [
     "valor_desconto": "20%",
     "min_compra": "99",
     "desconto_max": "80",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_fh-mai",
     "container_name": "fh-mai",
     "is_mar_aberto": false,
@@ -352,7 +317,6 @@ const COUPONS = [
     "valor_desconto": "18%",
     "min_compra": "49",
     "desconto_max": "60",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_fashion-2026-2",
     "container_name": "fashion-2026-2",
     "is_mar_aberto": false,
@@ -367,7 +331,6 @@ const COUPONS = [
     "valor_desconto": "20%",
     "min_compra": "79",
     "desconto_max": "80",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_fh-lp-vitrine-ofertas-2",
     "container_name": "fh-lp-vitrine-ofertas-2",
     "is_mar_aberto": false,
@@ -382,7 +345,6 @@ const COUPONS = [
     "valor_desconto": "10,00%",
     "min_compra": "79",
     "desconto_max": "50",
-    "status": "Ativo",
     "container_url": "https://lista.mercadolivre.com.br/_Container_hisensedescontaco",
     "container_name": "hisensedescontaco",
     "is_mar_aberto": false,
@@ -391,129 +353,115 @@ const COUPONS = [
   }
 ];
 
-function daysLeft(s){
+function dl(s){
   const[d,m,y]=s.split('/').map(Number);
-  const diff=new Date(y,m-1,d)-new Date(new Date().toDateString());
-  return Math.round(diff/86400000);
+  return Math.round((new Date(y,m-1,d)-new Date(new Date().toDateString()))/86400000);
 }
-function expiryInfo(c){
-  const d=daysLeft(c.dia_fim);
-  if(d<0)return{label:'Expirado',cls:''};
-  if(d===0)return{label:'Expira hoje',cls:'hoje'};
-  if(d<=3)return{label:d+'d restantes',cls:'breve'};
-  return{label:'Válido até '+c.dia_fim,cls:'ok'};
+function expInfo(c){
+  const d=dl(c.dia_fim);
+  if(d<0)return{l:'Expirado',cls:''};
+  if(d===0)return{l:'Expira hoje',cls:'hoje'};
+  if(d<=3)return{l:d+'d restantes',cls:'breve'};
+  return{l:'Válido até '+c.dia_fim,cls:'ok'};
 }
-function categoryShort(a){
+function cat(a){
   if(/fashion/i.test(a))return'Fashion';
   if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Furnishing';
   if(/sellers/i.test(a))return'Sellers';
   return'Outros';
 }
-function cardClass(c){
-  if(c.is_mar_aberto)return'mar-aberto';
-  const d=daysLeft(c.dia_fim);
-  if(d===0)return'expira-hoje';
-  if(d<=3)return'expira-breve';
+function cardCls(c){
+  if(c.is_mar_aberto)return'site';
+  const d=dl(c.dia_fim);
+  if(d===0)return'hoje';
+  if(d<=3)return'breve';
   return'';
 }
-
-let activeFilter='all', searchQuery='';
-
-function matchesFilter(c){
-  if(activeFilter==='mar_aberto'&&!c.is_mar_aberto)return false;
-  if(activeFilter==='Fashion'&&categoryShort(c.acao)!=='Fashion')return false;
-  if(activeFilter==='Furnishing'&&categoryShort(c.acao)!=='Furnishing')return false;
-  if(activeFilter==='Sellers'&&categoryShort(c.acao)!=='Sellers')return false;
-  if(activeFilter==='Outros'&&!['Outros'].includes(categoryShort(c.acao)))return false;
-  if(searchQuery){
-    const q=searchQuery.toLowerCase();
-    return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q)||c.acao.toLowerCase().includes(q);
-  }
+let af='all', sq='';
+function matches(c){
+  if(af==='mar'&&!c.is_mar_aberto)return false;
+  if(af==='Fashion'&&cat(c.acao)!=='Fashion')return false;
+  if(af==='Furnishing'&&cat(c.acao)!=='Furnishing')return false;
+  if(af==='Sellers'&&cat(c.acao)!=='Sellers')return false;
+  if(af==='Outros'&&cat(c.acao)!=='Outros')return false;
+  if(sq){const q=sq.toLowerCase();return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);}
   return true;
 }
-
 function renderCard(c){
-  const exp=expiryInfo(c);
-  const cls=cardClass(c);
-  const containerHTML=c.container_url
-    ?`<a class="ml-container-link" href="${c.container_url}" target="_blank" rel="noopener">/_Container_${c.container_name}</a>`
-    :`<span class="ml-site-wide">✓ Todo o site</span>`;
-  const catTag=c.is_mar_aberto
-    ?`<span class="ml-tag ml-tag-site">Todo o site</span>`
-    :`<span class="ml-tag ml-tag-cat">${categoryShort(c.acao)}</span>`;
-  return`<div class="ml-card ${cls}">
-    <div class="ml-card-badge">
-      <div class="ml-badge-num">${c.discount_num}</div>
-      <div class="ml-badge-pct">%</div>
-      <div class="ml-badge-off">OFF</div>
+  const exp=expInfo(c),cls=cardCls(c);
+  const catLabel=c.is_mar_aberto?'Todo o site':cat(c.acao);
+  const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
+  const container=c.container_url
+    ?`<a class="container-link" href="${c.container_url}" target="_blank" rel="noopener">/_Container_${c.container_name}</a>`
+    :`<span class="site-pill">✓ Todo o site</span>`;
+  const hotTag=c.discount_num>=20?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
+  const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${exp.l}</span>`:'';
+  return`<div class="card ${cls}">
+  <div class="card-badge">
+    <div class="badge-n">${c.discount_num}</div>
+    <div class="badge-unit">% OFF</div>
+  </div>
+  <div class="card-body">
+    <div class="card-top">
+      <span class="coupon-name">${c.nome}</span>
+      <span class="pill-tag ${catCls}">${catLabel}</span>
+      ${hotTag}${expTag}
     </div>
-    <div class="ml-card-body">
-      <div class="ml-card-top">
-        <span class="ml-coupon-code">${c.nome}</span>
-        ${catTag}
-        ${c.discount_num>=20?'<span class="ml-tag ml-tag-hot">🔥 Destaque</span>':''}
-      </div>
-      <div class="ml-card-details">
-        <div class="ml-detail"><span class="ml-detail-label">Desconto</span><span class="ml-detail-val green">${c.valor_desconto}</span></div>
-        <div class="ml-detail"><span class="ml-detail-label">Compra mínima</span><span class="ml-detail-val">R$${c.min_compra}</span></div>
-        <div class="ml-detail"><span class="ml-detail-label">Desconto máx.</span><span class="ml-detail-val">R$${c.desconto_max}</span></div>
-      </div>
-      <div class="ml-card-footer">
-        <span class="ml-date-range">📅 ${c.dia_inicio} até ${c.dia_fim}</span>
-        <span class="ml-expiry ${exp.cls}">${exp.label}</span>
-      </div>
-      <div class="ml-container-row">
-        <span class="ml-container-label">📦 Lista:</span>
-        ${containerHTML}
-      </div>
+    <div class="card-nums">
+      <div class="num-item"><span class="num-label">Desconto</span><span class="num-val green">${c.valor_desconto}</span></div>
+      <div class="num-item"><span class="num-label">Compra mínima</span><span class="num-val">R$${c.min_compra}</span></div>
+      <div class="num-item"><span class="num-label">Desconto máx.</span><span class="num-val">R$${c.desconto_max}</span></div>
+      <div class="num-item"><span class="num-label">Período</span><span class="num-val">${c.dia_inicio} → ${c.dia_fim}</span></div>
     </div>
-    <div class="ml-card-action">
-      <button class="ml-copy-btn" onclick="copyCoupon(this,'${c.nome}')">Copiar código</button>
+    <div class="container-row">
+      <span class="container-icon">📦</span>
+      <span class="container-lbl">Lista:</span>
+      ${container}
     </div>
-  </div>`;
+  </div>
+  <div class="card-action">
+    <button class="copy-btn" onclick="copy(this,'${c.nome}')">Copiar código</button>
+  </div>
+</div>`;
 }
-
-function updateCounts(){
-  const all=COUPONS;
-  document.getElementById('count-all').textContent=all.length;
-  document.getElementById('count-mar').textContent=all.filter(c=>c.is_mar_aberto).length;
-  document.getElementById('count-fashion').textContent=all.filter(c=>categoryShort(c.acao)==='Fashion').length;
-  document.getElementById('count-furn').textContent=all.filter(c=>categoryShort(c.acao)==='Furnishing').length;
-  document.getElementById('count-sellers').textContent=all.filter(c=>categoryShort(c.acao)==='Sellers').length;
-  document.getElementById('count-outros').textContent=all.filter(c=>categoryShort(c.acao)==='Outros').length;
-  document.getElementById('stat-total').textContent=all.length;
-  document.getElementById('stat-mar').textContent=all.filter(c=>c.is_mar_aberto).length;
-  const maxD=all.length?Math.max(...all.map(c=>c.discount_num)):0;
-  document.getElementById('stat-max').textContent=maxD+'%';
-  document.getElementById('stat-hoje').textContent=all.filter(c=>daysLeft(c.dia_fim)===0).length;
+function counts(){
+  const n=COUPONS;
+  document.getElementById('c-all').textContent=n.length;
+  document.getElementById('c-mar').textContent=n.filter(c=>c.is_mar_aberto).length;
+  document.getElementById('c-fas').textContent=n.filter(c=>cat(c.acao)==='Fashion').length;
+  document.getElementById('c-furn').textContent=n.filter(c=>cat(c.acao)==='Furnishing').length;
+  document.getElementById('c-sel').textContent=n.filter(c=>cat(c.acao)==='Sellers').length;
+  document.getElementById('c-out').textContent=n.filter(c=>cat(c.acao)==='Outros').length;
+  const maxD=n.length?Math.max(...n.map(c=>c.discount_num)):0;
+  const hoje=n.filter(c=>dl(c.dia_fim)===0).length;
+  document.getElementById('hero-stats').innerHTML=`
+    <div class="hero-stat"><div class="hero-stat-n">${n.length}</div><div class="hero-stat-l">Cupons ativos</div></div>
+    <div class="hero-stat"><div class="hero-stat-n">${n.filter(c=>c.is_mar_aberto).length}</div><div class="hero-stat-l">Todo o site</div></div>
+    <div class="hero-stat"><div class="hero-stat-n">${maxD}%</div><div class="hero-stat-l">Maior desconto</div></div>
+    ${hoje?`<div class="hero-stat"><div class="hero-stat-n" style="color:var(--red)">${hoje}</div><div class="hero-stat-l">Expiram hoje</div></div>`:''}
+  `;
 }
-
 function render(){
-  const visible=COUPONS.filter(matchesFilter);
-  document.getElementById('coupon-list').innerHTML=visible.map(renderCard).join('');
-  document.getElementById('count-visible').textContent=visible.length;
-  document.getElementById('empty-state').classList.toggle('visible',visible.length===0);
+  const v=COUPONS.filter(matches);
+  document.getElementById('list').innerHTML=v.map(renderCard).join('');
+  document.getElementById('empty').classList.toggle('show',v.length===0);
 }
-
-function copyCoupon(btn,code){
+function copy(btn,code){
   navigator.clipboard.writeText(code).catch(()=>{
-    const el=document.createElement('textarea');el.value=code;
-    document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();
+    const e=document.createElement('textarea');e.value=code;
+    document.body.appendChild(e);e.select();document.execCommand('copy');e.remove();
   });
   btn.textContent='✓ Copiado!';btn.classList.add('copied');
   setTimeout(()=>{btn.textContent='Copiar código';btn.classList.remove('copied')},2000);
 }
-
-document.querySelectorAll('.ml-filter-item').forEach(b=>{
+document.querySelectorAll('.filter-btn').forEach(b=>{
   b.addEventListener('click',()=>{
-    document.querySelectorAll('.ml-filter-item').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');activeFilter=b.dataset.filter;render();
+    document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');af=b.dataset.f;render();
   });
 });
-document.getElementById('search-input').addEventListener('input',e=>{searchQuery=e.target.value.trim();render()});
-
-updateCounts();
-render();
+document.getElementById('search').addEventListener('input',e=>{sq=e.target.value.trim();render()});
+counts();render();
 </script>
 </body>
 </html>
