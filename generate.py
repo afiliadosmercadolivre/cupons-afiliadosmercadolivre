@@ -15,32 +15,30 @@ from googleapiclient.discovery import build
 # ── CONFIGURAÇÃO ──────────────────────────────────────────────────────────────
 
 SPREADSHEET_ID = "1RM03Bn9rVpZ8KND_Y57YqK675z7peYnIekYvz2XnUMw"
-SHEET_NAME = "Julho/26"          # nome exato da aba
-DATA_START_ROW = 6               # primeira linha de dados (depois dos cabeçalhos)
+SHEET_NAME = "Julho/26"
+DATA_START_ROW = 6
 OUTPUT_FILE = "index.html"
 
-# Mapeamento de colunas (0-based dentro da linha de dados)
 COL = {
-    "acao":           0,   # A
-    "hora_inicio":    1,   # B
-    "dia_inicio":     2,   # C
-    "dia_fim":        3,   # D
-    "valor_desconto": 4,   # E
-    "min_compra":     5,   # F
-    "desconto_max":   6,   # G
-    "status_cupom":   7,   # H
-    "nome_cupom":     8,   # I
-    "id_cupom":       9,   # J
-    "texto_legal":   10,   # K
-    "tipo_cupom":    11,   # L
-    "containers":    12,   # M (col L da planilha real, ajuste se necessário)
-    "status_budget": 17,   # R — "Tem verba" / "Esgotado" etc.
+    "acao":           0,
+    "hora_inicio":    1,
+    "dia_inicio":     2,
+    "dia_fim":        3,
+    "valor_desconto": 4,
+    "min_compra":     5,
+    "desconto_max":   6,
+    "status_cupom":   7,
+    "nome_cupom":     8,
+    "id_cupom":       9,
+    "texto_legal":   10,
+    "tipo_cupom":    11,
+    "containers":    12,
+    "status_budget": 17,
 }
 
-# ── AUTENTICAÇÃO ─────────────────────────────────────────────────────────────
+# ── AUTENTICAÇÃO ──────────────────────────────────────────────────────────────
 
 def get_service():
-    """Autentica via Service Account JSON armazenado como secret."""
     sa_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
     if not sa_json:
         raise RuntimeError("Secret GOOGLE_SERVICE_ACCOUNT_JSON não encontrado.")
@@ -53,8 +51,7 @@ def get_service():
 
 
 def fetch_rows(service):
-    """Busca todas as linhas de dados da aba."""
-    range_name = f"{SHEET_NAME}!A{DATA_START_ROW}:R5000"
+    range_name = f"'{SHEET_NAME}'!A{DATA_START_ROW}:R5000"
     result = (
         service.spreadsheets()
         .values()
@@ -74,27 +71,38 @@ def safe_get(row, idx, default=""):
 
 
 def parse_date(s):
-    """Converte 'DD/MM/YYYY' para date."""
     try:
         return datetime.strptime(s, "%d/%m/%Y").date()
     except ValueError:
         return None
 
 
-def is_current_month(dia_fim_str):
-    """Retorna True se o cupom ainda não expirou."""
+def is_active(dia_fim_str):
     d = parse_date(dia_fim_str)
     if d is None:
         return False
     return d >= date.today()
 
 
+def days_left(dia_fim_str):
+    d = parse_date(dia_fim_str)
+    if d is None:
+        return 9999
+    return (d - date.today()).days
+
+
 def extract_container(url_raw):
-    """Extrai nome do container e URL limpa."""
     url = url_raw.strip().rstrip(".")
-    m = re.search(r"_Container_([^\s/\\]+)", url)
+    m = re.search(r"_Container_([^\s/\\|]+)", url)
     name = m.group(1) if m else ""
     return url, name
+
+
+def discount_num(val):
+    try:
+        return int(re.sub(r"[^\d]", "", val.split(",")[0]))
+    except:
+        return 0
 
 
 def parse_coupons(rows):
@@ -105,16 +113,18 @@ def parse_coupons(rows):
         dia_fim       = safe_get(row, COL["dia_fim"])
         status_budget = safe_get(row, COL["status_budget"])
 
-        # Filtros principais
         if not acao or not dia_inicio or not dia_fim:
             continue
         if status_budget != "Tem verba":
             continue
-        if not is_current_month(dia_fim):
+        if not is_active(dia_fim):
             continue
 
         container_raw = safe_get(row, COL["containers"])
         container_url, container_name = extract_container(container_raw)
+
+        # Mar aberto = sem container
+        is_mar_aberto = container_url == ""
 
         coupons.append({
             "nome":           safe_get(row, COL["nome_cupom"]),
@@ -127,262 +137,347 @@ def parse_coupons(rows):
             "status":         safe_get(row, COL["status_cupom"]),
             "container_url":  container_url,
             "container_name": container_name,
+            "is_mar_aberto":  is_mar_aberto,
+            "days_left":      days_left(dia_fim),
+            "discount_num":   discount_num(safe_get(row, COL["valor_desconto"])),
         })
+
+    # Ordenação: Mar aberto primeiro → expira mais cedo → maior desconto
+    coupons.sort(key=lambda c: (
+        0 if c["is_mar_aberto"] else 1,
+        c["days_left"],
+        -c["discount_num"],
+    ))
 
     return coupons
 
 
-# ── GERAÇÃO DO HTML ───────────────────────────────────────────────────────────
+# ── HTML ──────────────────────────────────────────────────────────────────────
 
 def to_js_array(coupons):
-    """Serializa a lista para JS seguro (sem depender de json.dumps para HTML)."""
-    return json.dumps(coupons, ensure_ascii=False, indent=4)
+    return json.dumps(coupons, ensure_ascii=False, indent=2)
 
 
 HTML_TEMPLATE = """\
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cupons Ativos — Afiliados Mercado Livre</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Proxima+Nova:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
     :root {{
-      --yellow:#FFE600;--yellow-soft:#FFF9CC;--blue-dark:#1A1A2E;
-      --blue-accent:#0F3460;--green:#00D09C;--green-faint:#E6FAF5;
-      --red:#FF4757;--text:#1A1A2E;--muted:#6B7280;
-      --border:#E5E7EB;--card-bg:#FFFFFF;--bg:#F7F8FA;
+      --ml-yellow: #FFE600;
+      --ml-yellow-hover: #FFD000;
+      --ml-blue: #2D3277;
+      --ml-blue-light: #3D44A0;
+      --ml-text: #333333;
+      --ml-muted: #666666;
+      --ml-border: #E5E5E5;
+      --ml-bg: #EDEDED;
+      --ml-white: #FFFFFF;
+      --ml-green: #00A650;
+      --ml-red: #F23D4F;
+      --ml-orange: #FF7733;
+      --radius: 4px;
     }}
-    *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
-    body{{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}}
-    .site-header{{background:var(--blue-dark);padding:0 24px;position:sticky;top:0;z-index:100;border-bottom:3px solid var(--yellow)}}
-    .header-inner{{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}}
-    .header-logo{{display:flex;align-items:center;gap:10px}}
-    .mark{{width:32px;height:32px;background:var(--yellow);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--blue-dark);flex-shrink:0}}
-    .title{{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.01em}}
-    .subtitle{{font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.05em;text-transform:uppercase}}
-    .header-meta{{display:flex;align-items:center;gap:8px}}
-    .pulse-dot{{width:8px;height:8px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}}
-    @keyframes pulse{{0%,100%{{opacity:1;transform:scale(1)}}50%{{opacity:.5;transform:scale(.8)}}}}
-    .live-label{{font-size:11px;font-weight:600;color:var(--green);letter-spacing:.08em;text-transform:uppercase}}
-    .last-updated{{font-size:11px;color:rgba(255,255,255,.4);font-family:'Space Mono',monospace}}
-    .hero-strip{{background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue-accent) 100%);padding:32px 24px 28px}}
-    .hero-inner{{max-width:960px;margin:0 auto}}
-    .hero-eyebrow{{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--yellow);margin-bottom:8px}}
-    .hero-heading{{font-size:clamp(22px,4vw,34px);font-weight:700;color:#fff;letter-spacing:-.02em;line-height:1.15;margin-bottom:12px}}
-    .hero-desc{{font-size:14px;color:rgba(255,255,255,.55);max-width:500px;line-height:1.6}}
-    .stats-row{{display:flex;gap:24px;margin-top:24px;flex-wrap:wrap}}
-    .stat-pill{{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 16px;display:flex;flex-direction:column;gap:2px}}
-    .stat-num{{font-size:22px;font-weight:700;color:var(--yellow);font-family:'Space Mono',monospace;letter-spacing:-.02em}}
-    .stat-label{{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}}
-    .filter-bar{{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;position:sticky;top:63px;z-index:90}}
-    .filter-inner{{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}}
-    .filter-label{{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;flex-shrink:0}}
-    .filter-btn{{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}}
-    .filter-btn:hover{{border-color:var(--blue-dark);color:var(--blue-dark)}}
-    .filter-btn.active{{background:var(--blue-dark);border-color:var(--blue-dark);color:#fff}}
-    .search-box{{margin-left:auto;padding:6px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--text);outline:none;width:200px;transition:border-color .15s}}
-    .search-box:focus{{border-color:var(--blue-dark)}}
-    .list-section{{max-width:960px;margin:24px auto;padding:0 24px}}
-    .section-header{{display:flex;align-items:center;gap:10px;margin-bottom:16px}}
-    .section-title{{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}}
-    .count-badge{{background:var(--blue-dark);color:var(--yellow);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}}
-    #coupon-list{{display:flex;flex-direction:column;gap:10px}}
-    .coupon-card{{background:var(--card-bg);border:1.5px solid var(--border);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;align-items:stretch;transition:box-shadow .18s,border-color .18s}}
-    .coupon-card:hover{{border-color:var(--blue-dark);box-shadow:0 4px 20px rgba(26,26,46,.08)}}
-    .coupon-card.expires-today{{border-color:var(--red)}}
-    .coupon-card.expires-today .card-side{{background:var(--red)}}
-    .card-side{{background:var(--blue-dark);width:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:16px 8px;flex-shrink:0}}
-    .card-discount-num{{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--yellow);line-height:1}}
-    .card-discount-pct{{font-size:10px;font-weight:700;color:rgba(255,230,0,.7);letter-spacing:.04em}}
-    .card-body{{padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}}
-    .card-top{{display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
-    .coupon-name{{font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.01em}}
-    .category-tag{{font-size:10px;font-weight:600;background:var(--yellow-soft);color:var(--blue-accent);padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.05em}}
-    .card-details{{display:flex;gap:16px;flex-wrap:wrap;align-items:center}}
-    .detail-item{{display:flex;flex-direction:column;gap:1px}}
-    .detail-label{{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}}
-    .detail-value{{font-size:13px;font-weight:600;color:var(--text)}}
-    .detail-value.green{{color:#059669}}
-    .card-dates{{display:flex;align-items:center;gap:6px}}
-    .date-range{{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace}}
-    .expiry-badge{{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}}
-    .expiry-badge.active{{background:var(--green-faint);color:#059669}}
-    .expiry-badge.today{{background:#FEE2E2;color:var(--red)}}
-    .expiry-badge.ending-soon{{background:#FEF3C7;color:#D97706}}
-    .container-row{{display:flex;align-items:center;gap:6px;margin-top:2px}}
-    .container-link{{font-size:12px;color:var(--blue-accent);text-decoration:none;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:380px}}
-    .container-link:hover{{text-decoration:underline}}
-    .site-wide-badge{{font-size:10px;font-weight:700;background:#EDE9FE;color:#6D28D9;padding:2px 8px;border-radius:12px;letter-spacing:.04em}}
-    .card-action{{padding:14px 16px;display:flex;align-items:center}}
-    .copy-btn{{background:var(--yellow);border:none;border-radius:8px;padding:10px 16px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--blue-dark);cursor:pointer;white-space:nowrap;transition:transform .12s,background .12s;letter-spacing:.02em}}
-    .copy-btn:hover{{transform:scale(1.04);background:#FFD700}}
-    .copy-btn.copied{{background:var(--green);color:#fff}}
-    .empty-state{{text-align:center;padding:48px 24px;color:var(--muted);font-size:14px;display:none}}
-    .empty-state.visible{{display:block}}
-    footer{{text-align:center;padding:32px 24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);margin-top:40px}}
-    .generated-at{{font-family:'Space Mono',monospace;font-size:11px;margin-top:4px}}
-    @media(max-width:600px){{
-      .coupon-card{{grid-template-columns:auto 1fr}}
-      .card-action{{display:none}}
-      .search-box{{width:130px}}
-      .last-updated{{display:none}}
+    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{ font-family: 'Inter', 'Proxima Nova', Arial, sans-serif; background: var(--ml-bg); color: var(--ml-text); font-size: 14px; }}
+
+    /* HEADER */
+    .ml-header {{ background: var(--ml-yellow); padding: 0; box-shadow: 0 1px 4px rgba(0,0,0,.15); }}
+    .ml-header-inner {{ max-width: 1200px; margin: 0 auto; padding: 0 16px; height: 56px; display: flex; align-items: center; gap: 24px; }}
+    .ml-logo {{ display: flex; align-items: center; gap: 8px; text-decoration: none; }}
+    .ml-logo-icon {{ width: 36px; height: 36px; background: var(--ml-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }}
+    .ml-logo-icon svg {{ width: 22px; height: 22px; }}
+    .ml-logo-text {{ font-size: 18px; font-weight: 700; color: var(--ml-blue); letter-spacing: -.01em; line-height: 1; }}
+    .ml-logo-sub {{ font-size: 10px; font-weight: 600; color: var(--ml-blue); opacity: .7; letter-spacing: .04em; text-transform: uppercase; }}
+    .ml-header-meta {{ margin-left: auto; display: flex; align-items: center; gap: 8px; }}
+    .ml-updated {{ font-size: 11px; color: var(--ml-blue); opacity: .7; }}
+
+    /* BREADCRUMB */
+    .ml-breadcrumb {{ background: var(--ml-white); border-bottom: 1px solid var(--ml-border); padding: 8px 16px; }}
+    .ml-breadcrumb-inner {{ max-width: 1200px; margin: 0 auto; font-size: 12px; color: var(--ml-muted); }}
+    .ml-breadcrumb a {{ color: var(--ml-blue); text-decoration: none; }}
+    .ml-breadcrumb a:hover {{ text-decoration: underline; }}
+
+    /* MAIN LAYOUT */
+    .ml-layout {{ max-width: 1200px; margin: 16px auto; padding: 0 16px; display: grid; grid-template-columns: 220px 1fr; gap: 16px; }}
+
+    /* SIDEBAR */
+    .ml-sidebar {{ display: flex; flex-direction: column; gap: 12px; }}
+    .ml-filter-box {{ background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); overflow: hidden; }}
+    .ml-filter-title {{ padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--ml-text); border-bottom: 1px solid var(--ml-border); }}
+    .ml-filter-item {{ display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; transition: background .1s; font-size: 13px; border: none; background: none; width: 100%; text-align: left; color: var(--ml-text); }}
+    .ml-filter-item:hover {{ background: #F5F5F5; }}
+    .ml-filter-item.active {{ color: var(--ml-blue); font-weight: 600; }}
+    .ml-filter-item.active::before {{ content: ''; width: 3px; height: 16px; background: var(--ml-blue); border-radius: 2px; margin-right: 4px; flex-shrink: 0; }}
+    .ml-filter-count {{ margin-left: auto; font-size: 11px; color: var(--ml-muted); background: #F0F0F0; padding: 1px 6px; border-radius: 10px; }}
+
+    .ml-stat-box {{ background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); padding: 16px; }}
+    .ml-stat-item {{ display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #F5F5F5; font-size: 13px; }}
+    .ml-stat-item:last-child {{ border-bottom: none; }}
+    .ml-stat-val {{ font-weight: 700; color: var(--ml-blue); }}
+
+    /* CONTENT */
+    .ml-content {{ display: flex; flex-direction: column; gap: 12px; }}
+    .ml-toolbar {{ background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }}
+    .ml-toolbar-count {{ font-size: 13px; color: var(--ml-muted); }}
+    .ml-toolbar-count strong {{ color: var(--ml-text); }}
+    .ml-search {{ margin-left: auto; padding: 7px 12px; border: 1px solid var(--ml-border); border-radius: var(--radius); font-size: 13px; font-family: inherit; outline: none; width: 220px; transition: border-color .15s; }}
+    .ml-search:focus {{ border-color: var(--ml-blue); }}
+
+    /* COUPON CARD */
+    .ml-card {{ background: var(--ml-white); border: 1px solid var(--ml-border); border-radius: var(--radius); display: grid; grid-template-columns: 100px 1fr auto; align-items: stretch; transition: box-shadow .15s; overflow: hidden; }}
+    .ml-card:hover {{ box-shadow: 0 2px 12px rgba(0,0,0,.1); }}
+    .ml-card.mar-aberto {{ border-left: 3px solid var(--ml-green); }}
+    .ml-card.expira-hoje {{ border-left: 3px solid var(--ml-red); }}
+    .ml-card.expira-breve {{ border-left: 3px solid var(--ml-orange); }}
+
+    .ml-card-badge {{ background: var(--ml-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 16px 8px; }}
+    .ml-card.expira-hoje .ml-card-badge {{ background: var(--ml-red); }}
+    .ml-badge-num {{ font-size: 28px; font-weight: 700; color: var(--ml-yellow); line-height: 1; font-family: Arial, sans-serif; }}
+    .ml-badge-pct {{ font-size: 11px; font-weight: 600; color: rgba(255,230,0,.8); }}
+    .ml-badge-off {{ font-size: 10px; color: rgba(255,230,0,.6); letter-spacing: .04em; text-transform: uppercase; }}
+
+    .ml-card-body {{ padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }}
+    .ml-card-top {{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }}
+    .ml-coupon-code {{ font-size: 18px; font-weight: 700; color: var(--ml-text); letter-spacing: .02em; font-family: 'Courier New', monospace; }}
+    .ml-tag {{ font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: .04em; }}
+    .ml-tag-site {{ background: #EBF5FF; color: var(--ml-blue); }}
+    .ml-tag-cat {{ background: #F0F0F0; color: var(--ml-muted); }}
+    .ml-tag-hot {{ background: #FFF0EC; color: var(--ml-orange); }}
+
+    .ml-card-details {{ display: flex; gap: 20px; flex-wrap: wrap; }}
+    .ml-detail {{ display: flex; flex-direction: column; gap: 1px; }}
+    .ml-detail-label {{ font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--ml-muted); }}
+    .ml-detail-val {{ font-size: 14px; font-weight: 600; color: var(--ml-text); }}
+    .ml-detail-val.green {{ color: var(--ml-green); }}
+
+    .ml-card-footer {{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }}
+    .ml-date-range {{ font-size: 12px; color: var(--ml-muted); }}
+    .ml-expiry {{ font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 2px; }}
+    .ml-expiry.ok {{ background: #F0FAF5; color: var(--ml-green); }}
+    .ml-expiry.hoje {{ background: #FFF0F0; color: var(--ml-red); }}
+    .ml-expiry.breve {{ background: #FFF5EC; color: var(--ml-orange); }}
+
+    .ml-container-row {{ display: flex; align-items: center; gap: 6px; }}
+    .ml-container-label {{ font-size: 11px; color: var(--ml-muted); flex-shrink: 0; }}
+    .ml-container-link {{ font-size: 12px; color: var(--ml-blue); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }}
+    .ml-container-link:hover {{ text-decoration: underline; }}
+    .ml-site-wide {{ font-size: 11px; font-weight: 700; background: #F0FAF5; color: var(--ml-green); padding: 2px 8px; border-radius: 2px; }}
+
+    .ml-card-action {{ padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-left: 1px solid var(--ml-border); min-width: 100px; }}
+    .ml-copy-btn {{ background: var(--ml-yellow); border: none; border-radius: var(--radius); padding: 10px 16px; font-size: 13px; font-weight: 700; color: var(--ml-text); cursor: pointer; width: 100%; transition: background .12s; font-family: inherit; }}
+    .ml-copy-btn:hover {{ background: var(--ml-yellow-hover); }}
+    .ml-copy-btn.copied {{ background: var(--ml-green); color: white; }}
+
+    /* EMPTY */
+    .ml-empty {{ text-align: center; padding: 48px; color: var(--ml-muted); background: var(--ml-white); border-radius: var(--radius); border: 1px solid var(--ml-border); display: none; }}
+    .ml-empty.visible {{ display: block; }}
+
+    /* FOOTER */
+    .ml-footer {{ max-width: 1200px; margin: 24px auto 32px; padding: 0 16px; text-align: center; font-size: 12px; color: var(--ml-muted); }}
+
+    @media (max-width: 768px) {{
+      .ml-layout {{ grid-template-columns: 1fr; }}
+      .ml-sidebar {{ display: none; }}
+      .ml-card {{ grid-template-columns: 80px 1fr; }}
+      .ml-card-action {{ display: none; }}
+      .ml-search {{ width: 140px; }}
     }}
   </style>
 </head>
 <body>
-<header class="site-header">
-  <div class="header-inner">
-    <div class="header-logo">
-      <div class="mark">ML</div>
-      <div>
-        <div class="title">Cupons Ativos</div>
-        <div class="subtitle">Afiliados · Mercado Livre</div>
+
+<header class="ml-header">
+  <div class="ml-header-inner">
+    <a class="ml-logo" href="#">
+      <div class="ml-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" fill="white" opacity=".9"/>
+          <path d="M8 11l3 3 5-5" stroke="#FFE600" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
-    </div>
-    <div class="header-meta">
-      <div class="pulse-dot"></div>
-      <span class="live-label">Ao vivo</span>
-      <span class="last-updated" id="ts">{generated_at}</span>
+      <div>
+        <div class="ml-logo-text">Cupons Afiliados</div>
+        <div class="ml-logo-sub">Mercado Livre</div>
+      </div>
+    </a>
+    <div class="ml-header-meta">
+      <span class="ml-updated">Atualizado em {generated_at}</span>
     </div>
   </div>
 </header>
 
-<div class="hero-strip">
-  <div class="hero-inner">
-    <div class="hero-eyebrow">{month_label} · Com verba disponível</div>
-    <h1 class="hero-heading">Cupons de desconto<br>prontos para divulgar</h1>
-    <p class="hero-desc">Todos os cupons abaixo têm verba confirmada no controle de Afiliados. Copie o código e inclua no seu conteúdo.</p>
-    <div class="stats-row" id="stats-row"></div>
+<div class="ml-breadcrumb">
+  <div class="ml-breadcrumb-inner">
+    <a href="#">Início</a> &rsaquo; <strong>Cupons ativos — {month_label}</strong>
   </div>
 </div>
 
-<div class="filter-bar">
-  <div class="filter-inner">
-    <span class="filter-label">Lista</span>
-    <button class="filter-btn active" data-filter="all">Todos</button>
-    <button class="filter-btn" data-filter="Fashion">Moda</button>
-    <button class="filter-btn" data-filter="Furnishing">Casa</button>
-    <button class="filter-btn" data-filter="Sellers">Sellers</button>
-    <button class="filter-btn" data-filter="Outros">Outros</button>
-    <input class="search-box" type="search" placeholder="Buscar cupom…" id="search-input" />
+<div class="ml-layout">
+  <!-- SIDEBAR -->
+  <aside class="ml-sidebar">
+    <div class="ml-filter-box">
+      <div class="ml-filter-title">Categorias</div>
+      <button class="ml-filter-item active" data-filter="all">Todos <span class="ml-filter-count" id="count-all">0</span></button>
+      <button class="ml-filter-item" data-filter="mar_aberto">🌐 Todo o site <span class="ml-filter-count" id="count-mar">0</span></button>
+      <button class="ml-filter-item" data-filter="Fashion">Moda <span class="ml-filter-count" id="count-fashion">0</span></button>
+      <button class="ml-filter-item" data-filter="Furnishing">Casa <span class="ml-filter-count" id="count-furn">0</span></button>
+      <button class="ml-filter-item" data-filter="Sellers">Sellers <span class="ml-filter-count" id="count-sellers">0</span></button>
+      <button class="ml-filter-item" data-filter="Outros">Outros <span class="ml-filter-count" id="count-outros">0</span></button>
+    </div>
+    <div class="ml-stat-box">
+      <div class="ml-filter-title" style="padding:12px 0 8px;border:none">Resumo</div>
+      <div class="ml-stat-item"><span>Total ativos</span><span class="ml-stat-val" id="stat-total">0</span></div>
+      <div class="ml-stat-item"><span>Todo o site</span><span class="ml-stat-val" id="stat-mar">0</span></div>
+      <div class="ml-stat-item"><span>Maior desconto</span><span class="ml-stat-val" id="stat-max">0%</span></div>
+      <div class="ml-stat-item"><span>Expiram hoje</span><span class="ml-stat-val" id="stat-hoje" style="color:var(--ml-red)">0</span></div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="ml-content">
+    <div class="ml-toolbar">
+      <span class="ml-toolbar-count"><strong id="count-visible">0</strong> cupons encontrados</span>
+      <input class="ml-search" type="search" placeholder="Buscar cupom…" id="search-input"/>
+    </div>
+    <div id="coupon-list"></div>
+    <div class="ml-empty" id="empty-state">Nenhum cupom encontrado para esse filtro.</div>
   </div>
 </div>
 
-<main class="list-section">
-  <div class="section-header">
-    <span class="section-title">Cupons com verba</span>
-    <span class="count-badge" id="count-badge">0</span>
-  </div>
-  <div id="coupon-list"></div>
-  <div class="empty-state" id="empty-state">Nenhum cupom encontrado para esse filtro.</div>
-</main>
-
-<footer>
-  <div>Fonte: Controle Cupons 2026 – Afiliados</div>
-  <div class="generated-at">Gerado automaticamente em {generated_at}</div>
-</footer>
+<div class="ml-footer">
+  Fonte: Controle Cupons {month_label} · Afiliados Mercado Livre · Atualização automática a cada hora
+</div>
 
 <script>
 const COUPONS = {coupons_json};
 
-function parseDate(s){{const[d,m,y]=s.split('/').map(Number);return new Date(y,m-1,d)}}
-function today(){{const n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())}}
-function daysLeft(s){{return Math.round((parseDate(s)-today())/86400000)}}
+function daysLeft(s){{
+  const[d,m,y]=s.split('/').map(Number);
+  const diff=new Date(y,m-1,d)-new Date(new Date().toDateString());
+  return Math.round(diff/86400000);
+}}
 function expiryInfo(c){{
   const d=daysLeft(c.dia_fim);
   if(d<0)return{{label:'Expirado',cls:''}};
-  if(d===0)return{{label:'Expira hoje',cls:'today'}};
-  if(d<=3)return{{label:d+'d restantes',cls:'ending-soon'}};
-  return{{label:'Válido até '+c.dia_fim,cls:'active'}};
+  if(d===0)return{{label:'Expira hoje',cls:'hoje'}};
+  if(d<=3)return{{label:d+'d restantes',cls:'breve'}};
+  return{{label:'Válido até '+c.dia_fim,cls:'ok'}};
 }}
-function discountNum(v){{return parseInt(v)}}
 function categoryShort(a){{
-  if(/fashion/i.test(a))return'Moda';
-  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Casa';
+  if(/fashion/i.test(a))return'Fashion';
+  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Furnishing';
   if(/sellers/i.test(a))return'Sellers';
-  if(/health/i.test(a))return'Saúde';
-  if(/beauty/i.test(a))return'Beleza';
-  if(/sports/i.test(a))return'Esportes';
-  return a;
+  return'Outros';
 }}
-let activeFilter='all',searchQuery='';
+function cardClass(c){{
+  if(c.is_mar_aberto)return'mar-aberto';
+  const d=daysLeft(c.dia_fim);
+  if(d===0)return'expira-hoje';
+  if(d<=3)return'expira-breve';
+  return'';
+}}
+
+let activeFilter='all', searchQuery='';
+
 function matchesFilter(c){{
-  if(activeFilter!=='all'){{
-    const cat=categoryShort(c.acao);
-    if(activeFilter==='Fashion'&&cat!=='Moda')return false;
-    if(activeFilter==='Furnishing'&&cat!=='Casa')return false;
-    if(activeFilter==='Sellers'&&cat!=='Sellers')return false;
-    if(activeFilter==='Outros'&&!['Outros','Saúde','Beleza','Esportes'].includes(cat))return false;
-  }}
+  if(activeFilter==='mar_aberto'&&!c.is_mar_aberto)return false;
+  if(activeFilter==='Fashion'&&categoryShort(c.acao)!=='Fashion')return false;
+  if(activeFilter==='Furnishing'&&categoryShort(c.acao)!=='Furnishing')return false;
+  if(activeFilter==='Sellers'&&categoryShort(c.acao)!=='Sellers')return false;
+  if(activeFilter==='Outros'&&!['Outros'].includes(categoryShort(c.acao)))return false;
   if(searchQuery){{
     const q=searchQuery.toLowerCase();
-    return c.nome.toLowerCase().includes(q)||c.acao.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);
+    return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q)||c.acao.toLowerCase().includes(q);
   }}
   return true;
 }}
+
 function renderCard(c){{
   const exp=expiryInfo(c);
-  const todayE=daysLeft(c.dia_fim)===0;
-  const cat=categoryShort(c.acao);
+  const cls=cardClass(c);
   const containerHTML=c.container_url
-    ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">/_Container_${{c.container_name}}</a>`
-    :`<span class="site-wide-badge">🌐 Todo o site</span>`;
-  return`<div class="coupon-card ${{todayE?'expires-today':''}}">
-    <div class="card-side">
-      <div class="card-discount-num">${{discountNum(c.valor_desconto)}}</div>
-      <div class="card-discount-pct">OFF%</div>
+    ?`<a class="ml-container-link" href="${{c.container_url}}" target="_blank" rel="noopener">/_Container_${{c.container_name}}</a>`
+    :`<span class="ml-site-wide">✓ Todo o site</span>`;
+  const catTag=c.is_mar_aberto
+    ?`<span class="ml-tag ml-tag-site">Todo o site</span>`
+    :`<span class="ml-tag ml-tag-cat">${{categoryShort(c.acao)}}</span>`;
+  return`<div class="ml-card ${{cls}}">
+    <div class="ml-card-badge">
+      <div class="ml-badge-num">${{c.discount_num}}</div>
+      <div class="ml-badge-pct">%</div>
+      <div class="ml-badge-off">OFF</div>
     </div>
-    <div class="card-body">
-      <div class="card-top">
-        <span class="coupon-name">${{c.nome}}</span>
-        <span class="category-tag">${{cat}}</span>
+    <div class="ml-card-body">
+      <div class="ml-card-top">
+        <span class="ml-coupon-code">${{c.nome}}</span>
+        ${{catTag}}
+        ${{c.discount_num>=20?'<span class="ml-tag ml-tag-hot">🔥 Destaque</span>':''}}
       </div>
-      <div class="card-details">
-        <div class="detail-item"><span class="detail-label">Desconto</span><span class="detail-value green">${{c.valor_desconto}}</span></div>
-        <div class="detail-item"><span class="detail-label">Mínimo</span><span class="detail-value">R$${{c.min_compra}}</span></div>
-        <div class="detail-item"><span class="detail-label">Máximo</span><span class="detail-value">R$${{c.desconto_max}}</span></div>
-        <div class="card-dates">
-          <span class="date-range">${{c.dia_inicio}} → ${{c.dia_fim}}</span>
-          <span class="expiry-badge ${{exp.cls}}">${{exp.label}}</span>
-        </div>
+      <div class="ml-card-details">
+        <div class="ml-detail"><span class="ml-detail-label">Desconto</span><span class="ml-detail-val green">${{c.valor_desconto}}</span></div>
+        <div class="ml-detail"><span class="ml-detail-label">Compra mínima</span><span class="ml-detail-val">R$${{c.min_compra}}</span></div>
+        <div class="ml-detail"><span class="ml-detail-label">Desconto máx.</span><span class="ml-detail-val">R$${{c.desconto_max}}</span></div>
       </div>
-      <div class="container-row"><span style="font-size:10px;color:var(--muted)">📦</span><span class="detail-label" style="flex-shrink:0">Lista:</span>${{containerHTML}}</div>
+      <div class="ml-card-footer">
+        <span class="ml-date-range">📅 ${{c.dia_inicio}} até ${{c.dia_fim}}</span>
+        <span class="ml-expiry ${{exp.cls}}">${{exp.label}}</span>
+      </div>
+      <div class="ml-container-row">
+        <span class="ml-container-label">📦 Lista:</span>
+        ${{containerHTML}}
+      </div>
     </div>
-    <div class="card-action">
-      <button class="copy-btn" onclick="copyCoupon(this,'${{c.nome}}')">Copiar</button>
+    <div class="ml-card-action">
+      <button class="ml-copy-btn" onclick="copyCoupon(this,'${{c.nome}}')">Copiar código</button>
     </div>
   </div>`;
 }}
+
+function updateCounts(){{
+  const all=COUPONS;
+  document.getElementById('count-all').textContent=all.length;
+  document.getElementById('count-mar').textContent=all.filter(c=>c.is_mar_aberto).length;
+  document.getElementById('count-fashion').textContent=all.filter(c=>categoryShort(c.acao)==='Fashion').length;
+  document.getElementById('count-furn').textContent=all.filter(c=>categoryShort(c.acao)==='Furnishing').length;
+  document.getElementById('count-sellers').textContent=all.filter(c=>categoryShort(c.acao)==='Sellers').length;
+  document.getElementById('count-outros').textContent=all.filter(c=>categoryShort(c.acao)==='Outros').length;
+  document.getElementById('stat-total').textContent=all.length;
+  document.getElementById('stat-mar').textContent=all.filter(c=>c.is_mar_aberto).length;
+  const maxD=all.length?Math.max(...all.map(c=>c.discount_num)):0;
+  document.getElementById('stat-max').textContent=maxD+'%';
+  document.getElementById('stat-hoje').textContent=all.filter(c=>daysLeft(c.dia_fim)===0).length;
+}}
+
 function render(){{
   const visible=COUPONS.filter(matchesFilter);
   document.getElementById('coupon-list').innerHTML=visible.map(renderCard).join('');
-  document.getElementById('count-badge').textContent=visible.length;
+  document.getElementById('count-visible').textContent=visible.length;
   document.getElementById('empty-state').classList.toggle('visible',visible.length===0);
-  const maxD=COUPONS.length?Math.max(...COUPONS.map(c=>discountNum(c.valor_desconto))):0;
-  const exp=COUPONS.filter(c=>daysLeft(c.dia_fim)===0);
-  document.getElementById('stats-row').innerHTML=`
-    <div class="stat-pill"><div class="stat-num">${{COUPONS.length}}</div><div class="stat-label">Cupons ativos</div></div>
-    <div class="stat-pill"><div class="stat-num">${{maxD}}%</div><div class="stat-label">Maior desconto</div></div>
-    ${{exp.length?`<div class="stat-pill"><div class="stat-num" style="color:#FF4757">${{exp.length}}</div><div class="stat-label">Expiram hoje</div></div>`:''}}
-  `;
 }}
+
 function copyCoupon(btn,code){{
   navigator.clipboard.writeText(code).catch(()=>{{
     const el=document.createElement('textarea');el.value=code;
     document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();
   }});
   btn.textContent='✓ Copiado!';btn.classList.add('copied');
-  setTimeout(()=>{{btn.textContent='Copiar';btn.classList.remove('copied')}},2000);
+  setTimeout(()=>{{btn.textContent='Copiar código';btn.classList.remove('copied')}},2000);
 }}
-document.querySelectorAll('.filter-btn').forEach(b=>{{
+
+document.querySelectorAll('.ml-filter-item').forEach(b=>{{
   b.addEventListener('click',()=>{{
-    document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.ml-filter-item').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');activeFilter=b.dataset.filter;render();
   }});
 }});
 document.getElementById('search-input').addEventListener('input',e=>{{searchQuery=e.target.value.trim();render()}});
+
+updateCounts();
 render();
 </script>
 </body>
@@ -392,10 +487,8 @@ render();
 
 def generate_html(coupons):
     now = datetime.now()
-    month_names = [
-        "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ]
+    month_names = ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+                   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
     month_label = f"{month_names[now.month]} {now.year}"
     generated_at = now.strftime("%d/%m/%Y %H:%M")
 
@@ -409,17 +502,12 @@ def generate_html(coupons):
     print(f"✅ {OUTPUT_FILE} gerado com {len(coupons)} cupons em {generated_at}")
 
 
-# ── MAIN ──────────────────────────────────────────────────────────────────────
-
 if __name__ == "__main__":
     print("🔐 Autenticando na Google Sheets API…")
     service = get_service()
-
     print("📊 Buscando dados da planilha…")
     rows = fetch_rows(service)
     print(f"   {len(rows)} linhas lidas")
-
     coupons = parse_coupons(rows)
     print(f"   {len(coupons)} cupons com 'Tem verba' no mês atual")
-
     generate_html(coupons)
