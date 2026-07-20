@@ -251,9 +251,9 @@ HTML_TEMPLATE = """\
   <div class="toolbar-inner">
     <button class="filter-btn active" data-f="all">Todos <span class="cnt" id="c-all"></span></button>
     <button class="filter-btn" data-f="mar">🌐 Todo o site <span class="cnt" id="c-mar"></span></button>
-    <button class="filter-btn" data-f="Fashion">Moda <span class="cnt" id="c-fas"></span></button>
-    <button class="filter-btn" data-f="Furnishing">Casa <span class="cnt" id="c-furn"></span></button>
-    <button class="filter-btn" data-f="Sellers">Sellers <span class="cnt" id="c-sel"></span></button>
+    <button class="filter-btn" data-f="Moda">Moda <span class="cnt" id="c-fas"></span></button>
+    <button class="filter-btn" data-f="Casa">Casa e Decoração <span class="cnt" id="c-furn"></span></button>
+    <button class="filter-btn" data-f="Sellers">Seleção Vendedores <span class="cnt" id="c-sel"></span></button>
     <button class="filter-btn" data-f="Outros">Outros <span class="cnt" id="c-out"></span></button>
     <input class="search" id="search" type="search" placeholder="🔍  Buscar cupom…"/>
   </div>
@@ -264,7 +264,8 @@ HTML_TEMPLATE = """\
   <div class="empty" id="empty">Nenhum cupom encontrado para esse filtro.</div>
 </div>
 
-<div class="footer">
+<div class="disclaimer" style="max-width:1100px;margin:0 auto 0;padding:0 24px 16px;"><p style="font-size:12px;font-weight:600;color:#888;background:#fff;border:1.5px solid #E8E8E8;border-radius:8px;padding:12px 16px;line-height:1.6;">⚠️ <strong>Atenção:</strong> Os cupons listados têm verba confirmada no momento da última atualização, mas podem ser encerrados antecipadamente sem aviso prévio. Sempre verifique a validade antes de divulgar.</p></div>
+  <div class="footer">
   Fonte: Controle Cupons {month_label} · Afiliados Mercado Livre
 </div>
 
@@ -283,9 +284,9 @@ function expInfo(c){{
   return{{l:'Válido até '+c.dia_fim,cls:'ok'}};
 }}
 function cat(a){{
-  if(/fashion/i.test(a))return'Fashion';
-  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Furnishing';
-  if(/sellers/i.test(a))return'Sellers';
+  if(/fashion/i.test(a))return'Moda';
+  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Casa e Decoração';
+  if(/sellers/i.test(a))return'Seleção Vendedores';
   return'Outros';
 }}
 function cardCls(c){{
@@ -298,9 +299,9 @@ function cardCls(c){{
 let af='all', sq='';
 function matches(c){{
   if(af==='mar'&&!c.is_mar_aberto)return false;
-  if(af==='Fashion'&&cat(c.acao)!=='Fashion')return false;
-  if(af==='Furnishing'&&cat(c.acao)!=='Furnishing')return false;
-  if(af==='Sellers'&&cat(c.acao)!=='Sellers')return false;
+  if(af==='Moda'&&cat(c.acao)!=='Moda')return false;
+  if(af==='Casa e Decoração'&&cat(c.acao)!=='Casa e Decoração')return false;
+  if(af==='Seleção Vendedores'&&cat(c.acao)!=='Seleção Vendedores')return false;
   if(af==='Outros'&&cat(c.acao)!=='Outros')return false;
   if(sq){{const q=sq.toLowerCase();return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);}}
   return true;
@@ -346,9 +347,9 @@ function counts(){{
   const n=COUPONS;
   document.getElementById('c-all').textContent=n.length;
   document.getElementById('c-mar').textContent=n.filter(c=>c.is_mar_aberto).length;
-  document.getElementById('c-fas').textContent=n.filter(c=>cat(c.acao)==='Fashion').length;
-  document.getElementById('c-furn').textContent=n.filter(c=>cat(c.acao)==='Furnishing').length;
-  document.getElementById('c-sel').textContent=n.filter(c=>cat(c.acao)==='Sellers').length;
+  document.getElementById('c-fas').textContent=n.filter(c=>cat(c.acao)==='Moda').length;
+  document.getElementById('c-furn').textContent=n.filter(c=>cat(c.acao)==='Casa e Decoração').length;
+  document.getElementById('c-sel').textContent=n.filter(c=>cat(c.acao)==='Seleção Vendedores').length;
   document.getElementById('c-out').textContent=n.filter(c=>cat(c.acao)==='Outros').length;
   const maxD=n.length?Math.max(...n.map(c=>c.discount_num)):0;
   const hoje=n.filter(c=>dl(c.dia_fim)===0).length;
