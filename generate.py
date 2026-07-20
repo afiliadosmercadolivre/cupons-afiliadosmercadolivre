@@ -240,8 +240,8 @@ HTML_TEMPLATE = """\
 <div class="hero">
   <div class="hero-inner">
     <div class="hero-left">
-      <h1>Cupons com <span>verba disponível</span><br>— {month_label}</h1>
-      <p>Somente cupons ativos com budget confirmado · Atualização automática a cada hora</p>
+      <h1>Cupons disponíveis<br>— {month_label}</h1>
+      <p>Atualização automática a cada hora</p>
     </div>
     <div class="hero-pills" id="hero-stats"></div>
   </div>
