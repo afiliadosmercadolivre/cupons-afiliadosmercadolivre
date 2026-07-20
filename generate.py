@@ -3,7 +3,7 @@ generate.py — v3 (Brand ML)
 """
 
 import json, os, re
-from datetime import datetime, date
+from datetime import datetime, date, timezone, timedelta
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
@@ -202,7 +202,8 @@ HTML_TEMPLATE = """\
     .container-row {{ display: flex; align-items: center; gap: 6px; }}
     .container-icon {{ font-size: 12px; }}
     .container-lbl {{ font-size: 11px; font-weight: 700; color: var(--muted); flex-shrink: 0; }}
-    .container-link {{ font-size: 12px; font-weight: 700; color: var(--blue); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }}
+    .container-link {{ font-size: 11px; font-weight: 800; color: var(--blue); background: #EFEFFF; border: 1.5px solid #C8C8FF; text-decoration: none; padding: 3px 12px; border-radius: 50px; white-space: nowrap; transition: background .15s; }}
+    .container-link:hover {{ background: #DDDEFF; text-decoration: none; }}
     .container-link:hover {{ text-decoration: underline; }}
     .site-pill {{ font-size: 11px; font-weight: 800; background: #E6F9EE; color: var(--green); padding: 3px 10px; border-radius: var(--radius-pill); }}
 
@@ -311,7 +312,7 @@ function renderCard(c){{
   const catLabel=c.is_mar_aberto?'Todo o site':cat(c.acao);
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
-    ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">/_Container_${{c.container_name}}</a>`
+    ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">Ver lista</a>`
     :`<span class="site-pill">✓ Todo o site</span>`;
   const hotTag=c.discount_num>=20?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${{exp.l}}</span>`:'';
@@ -387,11 +388,11 @@ counts();render();
 """
 
 def generate_html(coupons):
-    now = datetime.now()
+    now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=-3)))
     months = ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho",
               "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
     html = HTML_TEMPLATE.format(
-        generated_at=now.strftime("%d/%m/%Y %H:%M"),
+        generated_at=datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=-3))).strftime("%d/%m/%Y %H:%M"),
         month_label=f"{months[now.month]} {now.year}",
         coupons_json=to_js_array(coupons),
     )
