@@ -54,6 +54,26 @@ def days_left(s):
 def is_active(s):
     return days_left(s) >= 0
 
+def is_started(dia_inicio, hora_inicio):
+    """Retorna True se o cupom já iniciou (considera data + hora de Brasília)."""
+    try:
+        from datetime import timezone, timedelta
+        now_brt = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=-3)))
+        # Tenta combinar data + hora
+        hora_inicio = hora_inicio.strip() if hora_inicio else ""
+        if hora_inicio:
+            # Formatos possíveis: "09:00", "9:00", "09:00:00"
+            hora_clean = hora_inicio[:5]  # pega HH:MM
+            dt_inicio = datetime.strptime(f"{dia_inicio} {hora_clean}", "%d/%m/%Y %H:%M")
+            dt_inicio = dt_inicio.replace(tzinfo=timezone(timedelta(hours=-3)))
+            return now_brt >= dt_inicio
+        else:
+            # Sem hora definida, verifica só a data
+            d = parse_date(dia_inicio)
+            return d <= now_brt.date() if d else False
+    except Exception:
+        return True  # em caso de erro, exibe o cupom
+
 def extract_container(url_raw):
     url = url_raw.strip().rstrip(".")
     m = re.search(r"_Container_([^\s/\\|]+)", url)
@@ -75,6 +95,8 @@ def parse_coupons(rows):
         if not acao or not dia_inicio or not dia_fim: continue
         if status_budget != "Tem verba": continue
         if not is_active(dia_fim): continue
+        hora_inicio = safe_get(row, COL["hora_inicio"])
+        if not is_started(dia_inicio, hora_inicio): continue
         container_url, container_name = extract_container(safe_get(row, COL["containers"]))
         dl = days_left(dia_fim)
         dn = discount_num(safe_get(row, COL["valor_desconto"]))
