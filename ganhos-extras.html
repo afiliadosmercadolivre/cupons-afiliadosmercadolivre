@@ -133,7 +133,7 @@
     <a class="hdr-link" href="index.html">Cupons</a>
     <a class="hdr-link active" href="ganhos-extras.html">Ganhos Extras</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 04/08/2026 13:40</span>
+  <span class="hdr-ts">Atualizado em 04/08/2026 13:45</span>
 </header>
 
 <div class="hero">
@@ -169,7 +169,7 @@
 <script>
 const ITEMS = [
   {
-    "categoria": "CPG (Bens de Consumo)",
+    "categoria": "Bens de Consumo",
     "data_inicio": "03/07",
     "data_fim": "31/07",
     "url": "https://lista.mercadolivre.com.br/_Container_cpg-afiliados",
@@ -201,7 +201,7 @@ const ITEMS = [
     "days_left": 9999
   },
   {
-    "categoria": "CPG (Bens de Consumo)",
+    "categoria": "Bens de Consumo",
     "data_inicio": "22/07",
     "data_fim": "16/08",
     "url": "https://lista.mercadolivre.com.br/_Container_cpg-afiliados-drinks-extra",
@@ -217,7 +217,7 @@ const ITEMS = [
     "days_left": 9999
   },
   {
-    "categoria": "CPG (Bens de Consumo)",
+    "categoria": "Bens de Consumo",
     "data_inicio": "31/07",
     "data_fim": "16/08",
     "url": "https://lista.mercadolivre.com.br/_Container_cpg-afiliados-foods-extra",
@@ -276,6 +276,7 @@ function matches(c){
 }
 
 function renderCard(c){
+  c.categoria = c.categoria.replace('CPG (Bens de Consumo)', 'Bens de Consumo');
   const exp=expInfo(c.data_fim),cls=cardCls(c);
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-${cls}">${exp.l}</span>`:'';
   const btnHTML=c.url
