@@ -134,7 +134,7 @@
     <div class="hdr-pill">Cupons Afiliados</div>
     <span class="hdr-sub">Mercado Livre</span>
   </a>
-  <span class="hdr-ts">Atualizado em 04/08/2026 05:08</span>
+  <span class="hdr-ts">Atualizado em 04/08/2026 13:07</span>
 </header>
 
 <div class="hero">
@@ -170,7 +170,204 @@
 </div>
 
 <script>
-const COUPONS = [];
+const COUPONS = [
+  {
+    "nome": "AMODESCONTO",
+    "acao": "Mar Aberto - Afiliados",
+    "dia_inicio": "04/08/2026",
+    "dia_fim": "04/08/2026",
+    "valor_desconto": "10,00%",
+    "min_compra": "79",
+    "desconto_max": "100",
+    "container_url": "",
+    "container_name": "",
+    "is_mar_aberto": true,
+    "days_left": 0,
+    "discount_num": 10
+  },
+  {
+    "nome": "CASAPROMO",
+    "acao": "Furnishing & Houseware",
+    "dia_inicio": "01/08/2026",
+    "dia_fim": "04/08/2026",
+    "valor_desconto": "25,00%",
+    "min_compra": "19",
+    "desconto_max": "150",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_fh-afiliados-2026",
+    "container_name": "fh-afiliados-2026",
+    "is_mar_aberto": false,
+    "days_left": 0,
+    "discount_num": 25
+  },
+  {
+    "nome": "FASHIONML",
+    "acao": "Fashion",
+    "dia_inicio": "01/08/2026",
+    "dia_fim": "04/08/2026",
+    "valor_desconto": "18,00%",
+    "min_compra": "19",
+    "desconto_max": "60",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_fashion-2026-2",
+    "container_name": "fashion-2026-2",
+    "is_mar_aberto": false,
+    "days_left": 0,
+    "discount_num": 18
+  },
+  {
+    "nome": "QUEROPROMOML",
+    "acao": "Construction & Industry",
+    "dia_inicio": "01/08/2026",
+    "dia_fim": "07/08/2026",
+    "valor_desconto": "20,00%",
+    "min_compra": "19",
+    "desconto_max": "150",
+    "container_url": "Toda Vertical",
+    "container_name": "",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 20
+  },
+  {
+    "nome": "CORREML",
+    "acao": "Vehicle Parts & Accessories",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "07/08/2026",
+    "valor_desconto": "20,00%",
+    "min_compra": "59",
+    "desconto_max": "50",
+    "container_url": "Toda Vertical",
+    "container_name": "",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 20
+  },
+  {
+    "nome": "ESPORTESML",
+    "acao": "Sports",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "07/08/2026",
+    "valor_desconto": "15,0%",
+    "min_compra": "59",
+    "desconto_max": "50",
+    "container_url": "Toda Vertical",
+    "container_name": "",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 15
+  },
+  {
+    "nome": "PROMOPRAVC",
+    "acao": "E!",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "07/08/2026",
+    "valor_desconto": "15,00%",
+    "min_compra": "59",
+    "desconto_max": "50",
+    "container_url": "Toda Vertical",
+    "container_name": "",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 15
+  },
+  {
+    "nome": "MLTEMSAUDE",
+    "acao": "Health",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "07/08/2026",
+    "valor_desconto": "15,00%",
+    "min_compra": "59",
+    "desconto_max": "50",
+    "container_url": "Toda Vertical",
+    "container_name": "",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 15
+  },
+  {
+    "nome": "DESCOTOSMELI",
+    "acao": "Sellers",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "12/08/2026",
+    "valor_desconto": "25,00%",
+    "min_compra": "29",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-3",
+    "container_name": "aff-list-3",
+    "is_mar_aberto": false,
+    "days_left": 8,
+    "discount_num": 25
+  },
+  {
+    "nome": "MAISCUPONS",
+    "acao": "Sellers",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "12/08/2026",
+    "valor_desconto": "25,00%",
+    "min_compra": "29",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-5",
+    "container_name": "aff-list-5",
+    "is_mar_aberto": false,
+    "days_left": 8,
+    "discount_num": 25
+  },
+  {
+    "nome": "MAISPORMENOS",
+    "acao": "Sellers",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "12/08/2026",
+    "valor_desconto": "22,00%",
+    "min_compra": "29",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-4",
+    "container_name": "aff-list-4",
+    "is_mar_aberto": false,
+    "days_left": 8,
+    "discount_num": 22
+  },
+  {
+    "nome": "SUPERPROMO",
+    "acao": "Sellers",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "12/08/2026",
+    "valor_desconto": "20,00%",
+    "min_compra": "29",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-1",
+    "container_name": "aff-list-1",
+    "is_mar_aberto": false,
+    "days_left": 8,
+    "discount_num": 20
+  },
+  {
+    "nome": "HORADOCUPOM",
+    "acao": "Sellers",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "12/08/2026",
+    "valor_desconto": "18,00%",
+    "min_compra": "29",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-2",
+    "container_name": "aff-list-2",
+    "is_mar_aberto": false,
+    "days_left": 8,
+    "discount_num": 18
+  },
+  {
+    "nome": "MAISOFERTAS",
+    "acao": "Sellers",
+    "dia_inicio": "03/08/2026",
+    "dia_fim": "12/08/2026",
+    "valor_desconto": "18,00%",
+    "min_compra": "29",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-container-a",
+    "container_name": "aff-container-a",
+    "is_mar_aberto": false,
+    "days_left": 8,
+    "discount_num": 18
+  }
+];
 
 function dl(s){
   const[d,m,y]=s.split('/').map(Number);
