@@ -8,9 +8,37 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 SPREADSHEET_ID = "1RM03Bn9rVpZ8KND_Y57YqK675z7peYnIekYvz2XnUMw"
-SHEET_NAME = "Julho/26"
 DATA_START_ROW = 6
 OUTPUT_FILE = "index.html"
+
+MONTH_PT = ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+            "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
+
+def get_sheet_name(service):
+    """Detecta automaticamente a aba do mês atual (ex: Agosto/26)."""
+    from datetime import timezone, timedelta
+    now_brt = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=-3)))
+    # Tenta o mês atual e o anterior (caso vire o mês no meio do dia)
+    candidates = []
+    for delta in [0, -1, 1]:
+        m = now_brt.month + delta
+        y = now_brt.year
+        if m < 1: m, y = 12, y - 1
+        if m > 12: m, y = 1, y + 1
+        short_year = str(y)[-2:]
+        candidates.append(f"{MONTH_PT[m]}/{short_year}")
+
+    # Lista todas as abas disponíveis na planilha
+    meta = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
+    sheets = [s["properties"]["title"] for s in meta["sheets"]]
+    print(f"   Abas encontradas: {sheets}")
+
+    for candidate in candidates:
+        if candidate in sheets:
+            print(f"   Aba selecionada: {candidate}")
+            return candidate
+
+    raise RuntimeError(f"Nenhuma aba encontrada para {candidates}. Abas disponíveis: {sheets}")
 
 COL = {
     "acao": 0, "hora_inicio": 1, "dia_inicio": 2, "dia_fim": 3,
@@ -29,8 +57,8 @@ def get_service():
         info, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"])
     return build("sheets", "v4", credentials=creds)
 
-def fetch_rows(service):
-    range_name = f"'{SHEET_NAME}'!A{DATA_START_ROW}:R5000"
+def fetch_rows(service, sheet_name):
+    range_name = f"'{sheet_name}'!A{DATA_START_ROW}:R5000"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID, range=range_name).execute()
     return result.get("values", [])
@@ -425,8 +453,10 @@ def generate_html(coupons):
 if __name__ == "__main__":
     print("🔐 Autenticando na Google Sheets API…")
     service = get_service()
+    print("📊 Detectando aba do mês atual…")
+    sheet_name = get_sheet_name(service)
     print("📊 Buscando dados da planilha…")
-    rows = fetch_rows(service)
+    rows = fetch_rows(service, sheet_name)
     print(f"   {len(rows)} linhas lidas")
     coupons = parse_coupons(rows)
     print(f"   {len(coupons)} cupons com 'Tem verba' no mês atual")
