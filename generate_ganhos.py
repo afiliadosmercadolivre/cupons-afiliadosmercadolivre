@@ -105,6 +105,19 @@ def parse_rows(rows):
     items.sort(key=lambda x: (x["days_left"],))
     return items
 
+def debug_rows(rows):
+    """Imprime todas as linhas para diagnóstico."""
+    print("\n=== DEBUG LINHAS BRUTAS ===")
+    for i, row in enumerate(rows):
+        categoria   = safe_get(row, 0)
+        data_inicio = safe_get(row, 1)
+        data_fim    = safe_get(row, 2)
+        ganho_max   = safe_get(row, 4)
+        d = parse_date(data_fim)
+        dl_val = (d - date.today()).days if d else None
+        print(f"L{i+3}: cat='{categoria}' | inicio='{data_inicio}' | fim='{data_fim}' | parsed={d} | days_left={dl_val} | ganho='{ganho_max}'")
+    print("=== FIM DEBUG ===\n")
+
 # ── HTML ──────────────────────────────────────────────────────────────────────
 
 def to_js(data):
@@ -384,6 +397,7 @@ if __name__ == "__main__":
     print("📊 Buscando Ganhos Extras…")
     rows = fetch_rows(service)
     print(f"   {len(rows)} linhas lidas")
+    debug_rows(rows)
     items = parse_rows(rows)
     print(f"   {len(items)} itens ativos")
     generate_html(items)
