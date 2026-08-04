@@ -50,6 +50,11 @@ def parse_date(s):
     if not s:
         return None
     s = s.strip()
+    # Normaliza D/M/YYYY para DD/MM/YYYY
+    parts = s.split('/')
+    if len(parts) == 3:
+        d, m, y = parts
+        s = f"{int(d):02d}/{int(m):02d}/{y}"
     for fmt in ("%d/%m/%Y", "%d/%m/%y", "%Y-%m-%d"):
         try:
             return datetime.strptime(s, fmt).date()
@@ -279,7 +284,8 @@ const ITEMS = {items_json};
 
 function dl(s){{
   if(!s)return 9999;
-  const[d,m,y]=s.split('/').map(Number);
+  const parts=s.split('/').map(Number);
+  const[d,m,y]=[parts[0],parts[1],parts[2]];
   return Math.round((new Date(y,m-1,d)-new Date(new Date().toDateString()))/86400000);
 }}
 function expInfo(s){{
