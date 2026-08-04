@@ -47,7 +47,10 @@ def safe_get(row, idx, default=""):
         return default
 
 def parse_date(s):
-    for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d/%m/%y"):
+    if not s:
+        return None
+    s = s.strip()
+    for fmt in ("%d/%m/%Y", "%d/%m/%y", "%Y-%m-%d"):
         try:
             return datetime.strptime(s, fmt).date()
         except ValueError:
@@ -80,9 +83,11 @@ def parse_rows(rows):
 
         if not categoria or not data_fim:
             continue
-        if not is_active(data_fim):
+        dl_val = days_left(data_fim)
+        if dl_val < 0:
             continue
 
+        categoria = categoria.replace("CPG (Bens de Consumo)", "Bens de Consumo")
         items.append({
             "categoria":   categoria,
             "data_inicio": data_inicio,
@@ -298,6 +303,7 @@ function matches(c){{
 }}
 
 function renderCard(c){{
+  c.categoria = c.categoria.replace('CPG (Bens de Consumo)', 'Bens de Consumo');
   const exp=expInfo(c.data_fim),cls=cardCls(c);
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-${{cls}}">${{exp.l}}</span>`:'';
   const btnHTML=c.url
