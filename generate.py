@@ -183,6 +183,10 @@ HTML_TEMPLATE = """\
     .hdr-pill {{ background: var(--blue); color: var(--yellow); font-size: 13px; font-weight: 900; padding: 6px 18px; border-radius: var(--radius-pill); letter-spacing: -.01em; white-space: nowrap; }}
     .hdr-sub {{ font-size: 12px; font-weight: 700; color: var(--blue); opacity: .65; text-transform: uppercase; letter-spacing: .06em; }}
     .hdr-ts {{ font-size: 12px; font-weight: 600; color: var(--blue); opacity: .6; }}
+    .hdr-nav {{ display: flex; gap: 8px; align-items: center; }}
+    .hdr-link {{ font-size: 12px; font-weight: 700; color: var(--blue); text-decoration: none; padding: 6px 14px; border-radius: 50px; border: 2px solid var(--blue); opacity: .6; transition: opacity .15s; }}
+    .hdr-link:hover {{ opacity: 1; }}
+    .hdr-link.active {{ background: var(--blue); color: var(--yellow); opacity: 1; }}
 
     /* ── HERO ── */
     .hero {{ background: var(--blue); padding: 36px 24px 32px; }}
@@ -285,6 +289,10 @@ HTML_TEMPLATE = """\
     <div class="hdr-pill">Cupons Afiliados</div>
     <span class="hdr-sub">Mercado Livre</span>
   </a>
+  <nav class="hdr-nav">
+    <a class="hdr-link active" href="index.html">Cupons</a>
+    <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
+  </nav>
   <span class="hdr-ts">Atualizado em {generated_at}</span>
 </header>
 
