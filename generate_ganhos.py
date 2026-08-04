@@ -2,7 +2,7 @@
 generate_ganhos.py — Ganhos Extras Afiliados ML
 """
 
-import json, os, re
+import json, os
 from datetime import datetime, date, timezone, timedelta
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -11,8 +11,6 @@ SPREADSHEET_ID = "1ipuukzdhcKtTgqrK5MowmRXculVbYnLBSy1ULQEOZjY"
 SHEET_NAME     = "Ganhos Extras"
 DATA_START_ROW = 3
 OUTPUT_FILE    = "ganhos-extras.html"
-
-# ── AUTH ──────────────────────────────────────────────────────────────────────
 
 def get_service():
     sa_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
@@ -24,16 +22,51 @@ def get_service():
     return build("sheets", "v4", credentials=creds)
 
 def fetch_rows(service):
+    # FORMATTED_VALUE retorna exatamente o texto visível na célula
     range_name = f"'{SHEET_NAME}'!B{DATA_START_ROW}:F5000"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
         range=range_name,
-        valueRenderOption="UNFORMATTED_VALUE",
-        dateTimeRenderOption="FORMATTED_STRING"
+        valueRenderOption="FORMATTED_VALUE"
     ).execute()
     return result.get("values", [])
 
-# ── PARSE ─────────────────────────────────────────────────────────────────────
+def today_brt():
+    return datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=-3))).date()
+
+def parse_date(s):
+    """Converte D/M/YYYY, DD/MM/YYYY, DD/MM/YY, DD/MM (assume ano atual/próximo)."""
+    if not s:
+        return None
+    s = str(s).strip()
+    parts = s.split('/')
+    try:
+        if len(parts) == 3:
+            d, m, y = int(parts[0]), int(parts[1]), int(parts[2])
+            if y < 100:
+                y += 2000
+            return date(y, m, d)
+        elif len(parts) == 2:
+            # Sem ano — assume o ano atual; se já passou, tenta próximo ano
+            d, m = int(parts[0]), int(parts[1])
+            t = today_brt()
+            dt = date(t.year, m, d)
+            if dt < t:
+                dt = date(t.year + 1, m, d)
+            return dt
+    except (ValueError, IndexError):
+        pass
+    return None
+
+def days_left(s):
+    d = parse_date(s)
+    if d is None:
+        return 9999
+    return (d - today_brt()).days
+
+def fmt_date(s):
+    d = parse_date(s)
+    return d.strftime("%d/%m/%Y") if d else str(s)
 
 def safe_get(row, idx, default=""):
     try:
@@ -42,45 +75,12 @@ def safe_get(row, idx, default=""):
     except (IndexError, AttributeError):
         return default
 
-def parse_date(s):
-    if s is None or s == "":
-        return None
-    # Serial numérico do Google Sheets (epoch 30/12/1899)
-    if isinstance(s, (int, float)):
-        return date(1899, 12, 30) + timedelta(days=int(s))
-    s = str(s).strip()
-    if not s:
-        return None
-    # Normaliza D/M/YYYY ou D/M/YY (sem zero à esquerda)
-    parts = s.split('/')
-    if len(parts) == 3:
-        d, m, y = parts
-        s = f"{int(d):02d}/{int(m):02d}/{y.strip()}"
-    for fmt in ("%d/%m/%Y", "%d/%m/%y", "%Y-%m-%d"):
-        try:
-            return datetime.strptime(s, fmt).date()
-        except ValueError:
-            continue
-    return None
-
-def days_left(s):
-    d = parse_date(s)
-    if d is None:
-        return 9999
-    return (d - date.today()).days
-
-def fmt_date(s):
-    """Formata qualquer valor de data para DD/MM/YYYY."""
-    d = parse_date(s)
-    return d.strftime("%d/%m/%Y") if d else str(s)
-
 def parse_rows(rows):
     items = []
     for row in rows:
-        # Range começa em B, então idx 0=B, 1=C, 2=D, 3=E, 4=F
         categoria   = safe_get(row, 0)
-        data_inicio = row[1] if len(row) > 1 else ""
-        data_fim    = row[2] if len(row) > 2 else ""
+        data_inicio = safe_get(row, 1)
+        data_fim    = safe_get(row, 2)
         url         = safe_get(row, 3)
         ganho_max   = safe_get(row, 4)
 
@@ -88,10 +88,12 @@ def parse_rows(rows):
             continue
 
         dl = days_left(data_fim)
+        print(f"  [{categoria}] fim='{data_fim}' parsed={parse_date(data_fim)} days_left={dl}")
+
         if dl < 0:
+            print(f"    → REMOVIDO (expirado)")
             continue
 
-        # Renomeia CPG
         categoria = categoria.replace("CPG (Bens de Consumo)", "Bens de Consumo")
 
         items.append({
@@ -105,8 +107,6 @@ def parse_rows(rows):
 
     items.sort(key=lambda x: x["days_left"])
     return items
-
-# ── HTML ──────────────────────────────────────────────────────────────────────
 
 def to_js(data):
     return json.dumps(data, ensure_ascii=False, indent=2)
@@ -203,40 +203,35 @@ HTML = """\
   </nav>
   <span class="hdr-ts">Atualizado em {generated_at}</span>
 </header>
-
 <div class="hero">
   <div class="hero-inner">
     <div class="hero-left">
       <h1>Listas com <span>ganhos extras</span><br>para afiliados</h1>
-      <p>Comissões adicionais de vendedores e marcas além do % padrão do Mercado Livre</p>
+      <p>% de ganhos adicionais de vendedores e marcas além do padrão do Mercado Livre</p>
     </div>
     <div class="hero-pills" id="hero-stats"></div>
   </div>
 </div>
-
 <div class="toolbar">
   <div class="toolbar-inner">
     <span class="count-lbl"><strong id="count-visible">0</strong> listas ativas</span>
     <input class="search" id="search" type="search" placeholder="🔍  Buscar categoria…"/>
   </div>
 </div>
-
 <div class="list-wrap">
   <div id="list"></div>
   <div class="empty" id="empty">Nenhum item encontrado.</div>
 </div>
-
 <div class="disclaimer">
   <p>⚠️ <strong>Atenção:</strong> Os ganhos extras listados podem ser encerrados antecipadamente sem aviso prévio. Sempre verifique a validade antes de divulgar.</p>
 </div>
 <div class="footer">Fonte: Planejamento Estratégico Mensal — Afiliados Mercado Livre · Atualização automática a cada hora</div>
-
 <script>
 const ITEMS = {items_json};
 function dl(s){{
   if(!s)return 9999;
-  const parts=s.split('/').map(Number);
-  return Math.round((new Date(parts[2],parts[1]-1,parts[0])-new Date(new Date().toDateString()))/86400000);
+  const p=s.split('/').map(Number);
+  return Math.round((new Date(p[2],p[1]-1,p[0])-new Date(new Date().toDateString()))/86400000);
 }}
 function expInfo(s){{
   const d=dl(s);
@@ -245,27 +240,19 @@ function expInfo(s){{
   if(d<=3) return{{l:d+'d restantes',cls:'breve'}};
   return        {{l:'Válido até '+s,cls:'ok'}};
 }}
-function cardCls(c){{
-  const d=dl(c.data_fim);
-  if(d===0)return'hoje';if(d<=3)return'breve';return'ok';
-}}
+function cardCls(c){{const d=dl(c.data_fim);if(d===0)return'hoje';if(d<=3)return'breve';return'ok';}}
 let sq='';
-function matches(c){{
-  if(sq){{const q=sq.toLowerCase();return c.categoria.toLowerCase().includes(q);}}
-  return true;
-}}
+function matches(c){{if(sq){{const q=sq.toLowerCase();return c.categoria.toLowerCase().includes(q);}}return true;}}
 function renderCard(c){{
   const exp=expInfo(c.data_fim),cls=cardCls(c);
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-${{cls}}">${{exp.l}}</span>`:'';
-  const btnHTML=c.url
-    ?`<a class="ver-btn" href="${{c.url}}" target="_blank" rel="noopener">Ver lista</a>`
-    :`<span class="ver-btn no-url">Sem link</span>`;
+  const btnHTML=c.url?`<a class="ver-btn" href="${{c.url}}" target="_blank" rel="noopener">Ver lista</a>`:`<span class="ver-btn no-url">Sem link</span>`;
   return`<div class="card ${{cls}}">
   <div class="card-badge"><div class="badge-icon">💰</div><div class="badge-lbl">Ganho Extra</div></div>
   <div class="card-body">
     <div class="card-top"><span class="cat-name">${{c.categoria}}</span>${{expTag}}</div>
     <div class="card-nums">
-      <div class="num-item"><span class="num-label">Ganho máximo</span><span class="num-val green">${{c.ganho_max||'—'}}</span></div>
+      <div class="num-item"><span class="num-label">% de Ganhos</span><span class="num-val green">${{c.ganho_max||'—'}}</span></div>
       <div class="num-item"><span class="num-label">Período</span><span class="num-val purple">${{c.data_inicio}} → ${{c.data_fim}}</span></div>
       <div class="num-item"><span class="num-label">Validade</span><span class="expiry-pill ${{exp.cls}}">${{exp.l}}</span></div>
     </div>
@@ -281,8 +268,7 @@ function render(){{
   const hoje=ITEMS.filter(c=>dl(c.data_fim)===0).length;
   document.getElementById('hero-stats').innerHTML=`
     <div class="hero-stat"><div class="hero-stat-n">${{ITEMS.length}}</div><div class="hero-stat-l">Listas ativas</div></div>
-    ${{hoje?`<div class="hero-stat"><div class="hero-stat-n" style="color:var(--red)">${{hoje}}</div><div class="hero-stat-l">Expiram hoje</div></div>`:''}}
-  `;
+    ${{hoje?`<div class="hero-stat"><div class="hero-stat-n" style="color:var(--red)">${{hoje}}</div><div class="hero-stat-l">Expiram hoje</div></div>`:''}}`;
 }}
 document.getElementById('search').addEventListener('input',e=>{{sq=e.target.value.trim();render()}});
 render();
