@@ -133,7 +133,7 @@
     <a class="hdr-link" href="index.html">Cupons</a>
     <a class="hdr-link active" href="ganhos-extras.html">Ganhos Extras</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 04/08/2026 13:45</span>
+  <span class="hdr-ts">Atualizado em 04/08/2026 13:52</span>
 </header>
 
 <div class="hero">
@@ -252,7 +252,8 @@ const ITEMS = [
 
 function dl(s){
   if(!s)return 9999;
-  const[d,m,y]=s.split('/').map(Number);
+  const parts=s.split('/').map(Number);
+  const[d,m,y]=[parts[0],parts[1],parts[2]];
   return Math.round((new Date(y,m-1,d)-new Date(new Date().toDateString()))/86400000);
 }
 function expInfo(s){
