@@ -3,7 +3,6 @@ name: Atualizar Cupons
 on:
   schedule:
     - cron: "*/15 * * * *"
-
   workflow_dispatch:
 
 jobs:
@@ -26,17 +25,22 @@ jobs:
           pip install --upgrade pip
           pip install google-auth google-auth-httplib2 google-api-python-client
 
-      - name: Gerar index.html
+      - name: Gerar index.html (Cupons)
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: python generate.py
+
+      - name: Gerar ganhos-extras.html
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python generate_ganhos.py
 
       - name: Commit e push (se houve mudança)
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add index.html ganhos-extras.html
           git diff --cached --quiet && echo "Sem mudanças" && exit 0
-          git commit -m "chore: atualiza cupons $(date +'%d/%m/%Y %H:%M') BRT"
+          git commit -m "chore: atualiza páginas $(date +'%d/%m/%Y %H:%M') BRT"
           git pull --rebase origin main
           git push
