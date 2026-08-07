@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Configurar Python
         uses: actions/setup-python@v5
@@ -42,5 +44,5 @@ jobs:
           git add index.html ganhos-extras.html
           git diff --cached --quiet && echo "Sem mudanças" && exit 0
           git commit -m "chore: atualiza páginas $(date +'%d/%m/%Y %H:%M') BRT"
-          git pull --rebase origin main
-          git push
+          git pull origin main --strategy-option=theirs --no-edit
+          git push origin main
