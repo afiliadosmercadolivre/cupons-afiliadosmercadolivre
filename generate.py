@@ -371,7 +371,7 @@ function renderCard(c){{
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
     ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">Ver lista</a>`
-    :`<span class="site-pill">✓ Todo o site</span>`;
+    :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
   const hotTag=c.discount_num>=20?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${{exp.l}}</span>`:'';
   return`<div class="card ${{cls}}">
