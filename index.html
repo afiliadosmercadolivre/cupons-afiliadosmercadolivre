@@ -142,7 +142,7 @@
     <a class="hdr-link active" href="index.html">Cupons</a>
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 17/08/2026 16:54</span>
+  <span class="hdr-ts">Atualizado em 17/08/2026 17:29</span>
 </header>
 
 <div class="hero">
@@ -179,6 +179,20 @@
 
 <script>
 const COUPONS = [
+  {
+    "nome": "MELIPROMO",
+    "acao": "Vehicle Parts & Accessories",
+    "dia_inicio": "17/08/2026",
+    "dia_fim": "23/08/2026",
+    "valor_desconto": "25%",
+    "min_compra": "19",
+    "desconto_max": "100",
+    "container_url": "",
+    "container_name": "",
+    "is_mar_aberto": true,
+    "days_left": 6,
+    "discount_num": 25
+  },
   {
     "nome": "SEMPRENAMODA",
     "acao": "Fashion",
@@ -262,6 +276,34 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 2,
     "discount_num": 15
+  },
+  {
+    "nome": "APROVEITAGORA",
+    "acao": "Furnishing & Houseware",
+    "dia_inicio": "17/08/2026",
+    "dia_fim": "23/08/2026",
+    "valor_desconto": "20%",
+    "min_compra": "19",
+    "desconto_max": "150",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_fh-afiliados-2026",
+    "container_name": "fh-afiliados-2026",
+    "is_mar_aberto": false,
+    "days_left": 6,
+    "discount_num": 20
+  },
+  {
+    "nome": "COMPENSAML",
+    "acao": "Fashion",
+    "dia_inicio": "17/08/2026",
+    "dia_fim": "23/08/2026",
+    "valor_desconto": "18%",
+    "min_compra": "19",
+    "desconto_max": "60",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_fashion-2026-2",
+    "container_name": "fashion-2026-2",
+    "is_mar_aberto": false,
+    "days_left": 6,
+    "discount_num": 18
   },
   {
     "nome": "BRINCADEIRAS",
@@ -445,7 +487,7 @@ function renderCard(c){
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
     ?`<a class="container-link" href="${c.container_url}" target="_blank" rel="noopener">Ver lista</a>`
-    :`<span class="site-pill">✓ Todo o site</span>`;
+    :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
   const hotTag=c.discount_num>=20?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${exp.l}</span>`:'';
   return`<div class="card ${cls}">
