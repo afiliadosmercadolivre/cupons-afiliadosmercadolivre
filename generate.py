@@ -115,12 +115,16 @@ def discount_num(val):
 
 def parse_coupons(rows):
     coupons = []
+    debug_count = 0
     for row in rows:
         acao = safe_get(row, COL["acao"])
         dia_inicio = safe_get(row, COL["dia_inicio"])
         dia_fim = safe_get(row, COL["dia_fim"])
         status_budget = safe_get(row, COL["status_budget"])
         if not acao or not dia_inicio or not dia_fim: continue
+        debug_count += 1
+        if debug_count <= 20:
+            print(f"   DEBUG: acao='{acao}' dia_fim='{dia_fim}' status_budget={status_budget!r}")
         if status_budget != "Tem verba": continue
         if not is_active(dia_fim): continue
         hora_inicio = safe_get(row, COL["hora_inicio"])
