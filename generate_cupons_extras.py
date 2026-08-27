@@ -312,7 +312,6 @@ function matches(c){{
     const q=sq.toLowerCase();
     return (c.nome_cupom||'').toLowerCase().includes(q)
         || (c.categoria||'').toLowerCase().includes(q)
-        || (c.vertical||'').toLowerCase().includes(q)
         || (c.id_cupom||'').toLowerCase().includes(q);
   }}
   return true;
@@ -334,7 +333,6 @@ function renderCard(c){{
     <div class="card-top">
       <span class="coupon-name">${{nome}}</span>
       ${{c.categoria?`<span class="pill-tag pill-cat">${{c.categoria}}</span>`:''}}
-      ${{c.vertical?`<span class="pill-tag pill-vert">${{c.vertical}}</span>`:''}}
       ${{expTag}}
     </div>
     <div class="card-nums">
