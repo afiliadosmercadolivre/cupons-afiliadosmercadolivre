@@ -108,10 +108,15 @@ def extract_container(url_raw):
     return url, (m.group(1) if m else "")
 
 def discount_num(val):
+    """Extrai o número, preservando se é % ou R$."""
     try:
         return int(re.sub(r"[^\d]", "", val.split(",")[0]))
     except:
         return 0
+
+def is_reais(val):
+    """Retorna True se o valor do desconto está em reais (R$) em vez de percentual."""
+    return "R$" in val or "r$" in val.lower()
 
 def parse_coupons(rows):
     coupons = []
@@ -127,13 +132,15 @@ def parse_coupons(rows):
         if not is_started(dia_inicio, hora_inicio): continue
         container_url, container_name = extract_container(safe_get(row, COL["containers"]))
         dl = days_left(dia_fim)
-        dn = discount_num(safe_get(row, COL["valor_desconto"]))
+        valor_desconto_raw = safe_get(row, COL["valor_desconto"])
+        dn = discount_num(valor_desconto_raw)
+        eh_reais = is_reais(valor_desconto_raw)
         coupons.append({
             "nome": safe_get(row, COL["nome_cupom"]),
             "acao": acao,
             "dia_inicio": dia_inicio,
             "dia_fim": dia_fim,
-            "valor_desconto": safe_get(row, COL["valor_desconto"]),
+            "valor_desconto": valor_desconto_raw,
             "min_compra": safe_get(row, COL["min_compra"]),
             "desconto_max": safe_get(row, COL["desconto_max"]),
             "container_url": container_url,
@@ -141,6 +148,7 @@ def parse_coupons(rows):
             "is_mar_aberto": container_url == "",
             "days_left": dl,
             "discount_num": dn,
+            "is_reais": eh_reais,
         })
     coupons.sort(key=lambda c: (0 if c["is_mar_aberto"] else 1, c["days_left"], -c["discount_num"]))
     return coupons
@@ -372,12 +380,13 @@ function renderCard(c){{
   const container=c.container_url
     ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">Ver lista</a>`
     :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
-  const hotTag=c.discount_num>=20?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
+  const hotTag=(!c.is_reais && c.discount_num>=20)?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${{exp.l}}</span>`:'';
+  const badgeUnit=c.is_reais?'R$ OFF':'% OFF';
   return`<div class="card ${{cls}}">
   <div class="card-badge">
     <div class="badge-n">${{c.discount_num}}</div>
-    <div class="badge-unit">% OFF</div>
+    <div class="badge-unit">${{badgeUnit}}</div>
   </div>
   <div class="card-body">
     <div class="card-top">
