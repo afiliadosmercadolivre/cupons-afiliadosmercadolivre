@@ -47,13 +47,10 @@ def parse_date(s):
                 y += 2000
             return date(y, m, d)
         elif len(parts) == 2:
-            # Sem ano — assume o ano atual; se já passou, tenta próximo ano
+            # Sem ano — assume ano atual; se já passou, é expirado (retorna data no passado)
             d, m = int(parts[0]), int(parts[1])
             t = today_brt()
-            dt = date(t.year, m, d)
-            if dt < t:
-                dt = date(t.year + 1, m, d)
-            return dt
+            return date(t.year, m, d)
     except (ValueError, IndexError):
         pass
     return None
@@ -88,7 +85,7 @@ def parse_rows(rows):
             continue
 
         dl = days_left(data_fim)
-        print(f"  [{categoria}] fim='{data_fim}' parsed={parse_date(data_fim)} days_left={dl}")
+        print(f"  [{categoria}] fim_raw={data_fim!r} fim='{data_fim}' parsed={parse_date(data_fim)} days_left={dl} | today_brt={today_brt()}")
 
         if dl < 0:
             print(f"    → REMOVIDO (expirado)")
