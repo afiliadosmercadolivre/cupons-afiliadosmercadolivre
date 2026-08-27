@@ -300,6 +300,7 @@ HTML_TEMPLATE = """\
   <nav class="hdr-nav">
     <a class="hdr-link active" href="index.html">Cupons</a>
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
+    <a class="hdr-link" href="cupons-extras.html">Cupons Extras</a>
   </nav>
   <span class="hdr-ts">Atualizado em {generated_at}</span>
 </header>
