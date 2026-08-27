@@ -125,8 +125,10 @@ def parse_rows(rows):
         if not categoria and not vertical:
             continue
 
+        print(f"   DEBUG: vertical='{vertical}' categoria='{categoria}' status_cupom={status_cupom!r} data_final='{data_final}'")
+
         # Status precisa ser "Active"
-        if status_cupom != "Active":
+        if status_cupom.strip().lower() != "active":
             continue
 
         # Coluna H sobrepõe D se preenchida
