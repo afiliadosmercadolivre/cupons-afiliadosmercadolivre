@@ -96,7 +96,7 @@
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
     <a class="hdr-link active" href="cupons-extras.html">Cupons Extras</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 27/08/2026 19:13</span>
+  <span class="hdr-ts">Atualizado em 27/08/2026 19:26</span>
 </header>
 <div class="hero">
   <div class="hero-inner">
@@ -411,6 +411,25 @@ const ITEMS = [
   {
     "vertical": "T&B",
     "categoria": "Brinquedos & Bebês",
+    "data_inicial": "21/08/2026",
+    "data_final": "31/08/2026",
+    "horario_inicio": "0:00",
+    "tipo_cupom": "Código",
+    "id_cupom": "13510423",
+    "nome_cupom": "MELIPRINCESAS",
+    "mecanica": "%",
+    "desconto": "15%",
+    "discount_num": 15,
+    "is_reais": false,
+    "asp_minimo": "19",
+    "desconto_max": "15",
+    "url": "https://lista.mercadolivre.com.br/_Desde_49_Container_meli-princess-cupom_NoIndex_True",
+    "obs": "15% off, valor mínimo 19 reais, limitado a 15 reais",
+    "days_left": 4
+  },
+  {
+    "vertical": "T&B",
+    "categoria": "Brinquedos & Bebês",
     "data_inicial": "26/08/2026",
     "data_final": "31/08/2026",
     "horario_inicio": "",
@@ -637,7 +656,6 @@ function matches(c){
     const q=sq.toLowerCase();
     return (c.nome_cupom||'').toLowerCase().includes(q)
         || (c.categoria||'').toLowerCase().includes(q)
-        || (c.vertical||'').toLowerCase().includes(q)
         || (c.id_cupom||'').toLowerCase().includes(q);
   }
   return true;
@@ -659,7 +677,6 @@ function renderCard(c){
     <div class="card-top">
       <span class="coupon-name">${nome}</span>
       ${c.categoria?`<span class="pill-tag pill-cat">${c.categoria}</span>`:''}
-      ${c.vertical?`<span class="pill-tag pill-vert">${c.vertical}</span>`:''}
       ${expTag}
     </div>
     <div class="card-nums">
