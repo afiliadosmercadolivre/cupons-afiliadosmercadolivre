@@ -103,9 +103,18 @@ def is_started(dia_inicio, hora_inicio):
         return True  # em caso de erro, exibe o cupom
 
 def extract_container(url_raw):
-    url = url_raw.strip().rstrip(".")
-    m = re.search(r"_Container_([^\s/\\|]+)", url)
-    return url, (m.group(1) if m else "")
+    """Extrai container. Se for URL com padrão _Container_, extrai o nome.
+    Se for texto simples (ex: nome de loja), usa como está."""
+    raw = url_raw.strip().rstrip(".")
+    if not raw:
+        return "", ""
+    m = re.search(r"_Container_([^\s/\\|]+)", raw)
+    if m:
+        return raw, m.group(1)
+    # Texto simples (ex: "Magazine Luiza") — não é URL, mas é uma restrição válida
+    if raw.startswith("http"):
+        return raw, raw  # URL sem padrão _Container_, usa a própria URL como nome
+    return "", raw  # Nome de loja sem URL — sem link, mas com nome para exibir
 
 def discount_num(val):
     """Extrai o número, preservando se é % ou R$."""
@@ -145,7 +154,7 @@ def parse_coupons(rows):
             "desconto_max": safe_get(row, COL["desconto_max"]),
             "container_url": container_url,
             "container_name": container_name,
-            "is_mar_aberto": container_url == "",
+            "is_mar_aberto": "mar aberto" in acao.lower(),
             "days_left": dl,
             "discount_num": dn,
             "is_reais": eh_reais,
@@ -380,7 +389,9 @@ function renderCard(c){{
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
     ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">Ver lista</a>`
-    :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
+    :c.container_name
+      ?`<span class="container-link" style="cursor:default">${{c.container_name}}</span>`
+      :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
   const hotTag=(!c.is_reais && c.discount_num>=20)?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${{exp.l}}</span>`:'';
   const badgeUnit=c.is_reais?'R$ OFF':'% OFF';
