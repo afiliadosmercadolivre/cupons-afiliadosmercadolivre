@@ -143,7 +143,7 @@
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
     <a class="hdr-link" href="cupons-extras.html">Cupons Extras</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 03/09/2026 11:14</span>
+  <span class="hdr-ts">Atualizado em 03/09/2026 11:51</span>
 </header>
 
 <div class="hero">
@@ -180,51 +180,6 @@
 
 <script>
 const COUPONS = [
-  {
-    "nome": "AGORAOUNUNCA",
-    "acao": "Mar Aberto - Afiliados",
-    "dia_inicio": "03/09/2026",
-    "dia_fim": "03/09/2026",
-    "valor_desconto": "10,00%",
-    "min_compra": "79",
-    "desconto_max": "100",
-    "container_url": "",
-    "container_name": "",
-    "is_mar_aberto": true,
-    "days_left": 0,
-    "discount_num": 10,
-    "is_reais": false
-  },
-  {
-    "nome": "OFERTASML",
-    "acao": "Magazine Luiza",
-    "dia_inicio": "03/09/2026",
-    "dia_fim": "08/09/2026",
-    "valor_desconto": "8,00%",
-    "min_compra": "150",
-    "desconto_max": "300",
-    "container_url": "",
-    "container_name": "",
-    "is_mar_aberto": true,
-    "days_left": 5,
-    "discount_num": 8,
-    "is_reais": false
-  },
-  {
-    "nome": "PROMOML",
-    "acao": "Kabum",
-    "dia_inicio": "03/09/2026",
-    "dia_fim": "08/09/2026",
-    "valor_desconto": "8,00%",
-    "min_compra": "150",
-    "desconto_max": "300",
-    "container_url": "",
-    "container_name": "",
-    "is_mar_aberto": true,
-    "days_left": 5,
-    "discount_num": 8,
-    "is_reais": false
-  },
   {
     "nome": "SUPERDESCONTO",
     "acao": "Fashion",
@@ -283,6 +238,36 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 0,
     "discount_num": 10,
+    "is_reais": false
+  },
+  {
+    "nome": "OFERTASML",
+    "acao": "Magazine Luiza",
+    "dia_inicio": "03/09/2026",
+    "dia_fim": "08/09/2026",
+    "valor_desconto": "8,00%",
+    "min_compra": "150",
+    "desconto_max": "300",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_cupom-magalu",
+    "container_name": "cupom-magalu",
+    "is_mar_aberto": false,
+    "days_left": 5,
+    "discount_num": 8,
+    "is_reais": false
+  },
+  {
+    "nome": "PROMOML",
+    "acao": "Kabum",
+    "dia_inicio": "03/09/2026",
+    "dia_fim": "08/09/2026",
+    "valor_desconto": "8,00%",
+    "min_compra": "150",
+    "desconto_max": "300",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_cupom-kabum",
+    "container_name": "cupom-kabum",
+    "is_mar_aberto": false,
+    "days_left": 5,
+    "discount_num": 8,
     "is_reais": false
   },
   {
@@ -477,7 +462,9 @@ function renderCard(c){
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
     ?`<a class="container-link" href="${c.container_url}" target="_blank" rel="noopener">Ver lista</a>`
-    :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
+    :c.container_name
+      ?`<span class="container-link" style="cursor:default">${c.container_name}</span>`
+      :`<a class="container-link" href="https://www.mercadolivre.com.br/" target="_blank" rel="noopener">Ver site completo</a>`;
   const hotTag=(!c.is_reais && c.discount_num>=20)?'<span class="pill-tag pill-hot">🔥 Destaque</span>':'';
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${exp.l}</span>`:'';
   const badgeUnit=c.is_reais?'R$ OFF':'% OFF';
