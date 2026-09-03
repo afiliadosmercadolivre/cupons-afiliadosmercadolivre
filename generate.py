@@ -364,7 +364,9 @@ function cat(a){{
   if(/fashion/i.test(a))return'Moda';
   if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Casa e Decoração';
   if(/sellers/i.test(a))return'Seleção Vendedores';
-  return'Outros';
+  if(/mar aberto/i.test(a))return'Outros';
+  // Se não bater com nenhuma categoria conhecida, usa o próprio texto (ex: nome da loja)
+  return a || 'Outros';
 }}
 function cardCls(c){{
   if(c.is_mar_aberto)return'site';
@@ -379,7 +381,10 @@ function matches(c){{
   if(af==='Moda'&&cat(c.acao)!=='Moda')return false;
   if(af==='Casa e Decoração'&&cat(c.acao)!=='Casa e Decoração')return false;
   if(af==='Seleção Vendedores'&&cat(c.acao)!=='Seleção Vendedores')return false;
-  if(af==='Outros'&&cat(c.acao)!=='Outros')return false;
+  if(af==='Outros'){{
+    const knownCats=['Moda','Casa e Decoração','Seleção Vendedores'];
+    if(c.is_mar_aberto||knownCats.includes(cat(c.acao)))return false;
+  }}
   if(sq){{const q=sq.toLowerCase();return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);}}
   return true;
 }}
@@ -430,7 +435,10 @@ function counts(){{
   document.getElementById('c-fas').textContent=n.filter(c=>cat(c.acao)==='Moda').length;
   document.getElementById('c-furn').textContent=n.filter(c=>cat(c.acao)==='Casa e Decoração').length;
   document.getElementById('c-sel').textContent=n.filter(c=>cat(c.acao)==='Seleção Vendedores').length;
-  document.getElementById('c-out').textContent=n.filter(c=>cat(c.acao)==='Outros').length;
+  document.getElementById('c-out').textContent=n.filter(c=>{{
+    const knownCats=['Moda','Casa e Decoração','Seleção Vendedores'];
+    return !c.is_mar_aberto && !knownCats.includes(cat(c.acao));
+  }}).length;
   const maxD=n.length?Math.max(...n.map(c=>c.discount_num)):0;
   const hoje=n.filter(c=>dl(c.dia_fim)===0).length;
   document.getElementById('hero-stats').innerHTML=`
