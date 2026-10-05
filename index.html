@@ -143,7 +143,7 @@
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
     <a class="hdr-link" href="cupons-extras.html">Cupons Extras</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 05/10/2026 10:43</span>
+  <span class="hdr-ts">Atualizado em 05/10/2026 10:58</span>
 </header>
 
 <div class="hero">
@@ -158,12 +158,7 @@
 
 <div class="toolbar">
   <div class="toolbar-inner">
-    <button class="filter-btn active" data-f="all">Todos <span class="cnt" id="c-all"></span></button>
-    <button class="filter-btn" data-f="mar">🌐 Todo o site <span class="cnt" id="c-mar"></span></button>
-    <button class="filter-btn" data-f="Moda">Moda <span class="cnt" id="c-fas"></span></button>
-    <button class="filter-btn" data-f="Casa">Casa e Decoração <span class="cnt" id="c-furn"></span></button>
-    <button class="filter-btn" data-f="Sellers">Seleção Vendedores <span class="cnt" id="c-sel"></span></button>
-    <button class="filter-btn" data-f="Outros">Outros <span class="cnt" id="c-out"></span></button>
+    <div id="filters" style="display:contents"></div>
     <input class="search" id="search" type="search" placeholder="🔍  Buscar cupom…"/>
   </div>
 </div>
@@ -193,37 +188,8 @@ const COUPONS = [
     "is_mar_aberto": true,
     "days_left": 0,
     "discount_num": 10,
-    "is_reais": false
-  },
-  {
-    "nome": "BATEUPRONTOCUPOM",
-    "acao": "Sellers",
-    "dia_inicio": "10/09/2026",
-    "dia_fim": "05/10/2026",
-    "valor_desconto": "30%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-10",
-    "container_name": "aff-list-10",
-    "is_mar_aberto": false,
-    "days_left": 0,
-    "discount_num": 30,
-    "is_reais": false
-  },
-  {
-    "nome": "SAINDOBARRATO",
-    "acao": "Sellers",
-    "dia_inicio": "10/09/2026",
-    "dia_fim": "05/10/2026",
-    "valor_desconto": "30%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-11",
-    "container_name": "aff-list-11",
-    "is_mar_aberto": false,
-    "days_left": 0,
-    "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Todo o site"
   },
   {
     "nome": "AGORAOUNUNCA",
@@ -238,127 +204,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 0,
     "discount_num": 10,
-    "is_reais": false
-  },
-  {
-    "nome": "APROVEITAMUITO",
-    "acao": "Sellers",
-    "dia_inicio": "11/09/2026",
-    "dia_fim": "06/10/2026",
-    "valor_desconto": "25%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-13",
-    "container_name": "aff-list-13",
-    "is_mar_aberto": false,
-    "days_left": 1,
-    "discount_num": 25,
-    "is_reais": false
-  },
-  {
-    "nome": "PEGAMELI",
-    "acao": "Sellers",
-    "dia_inicio": "11/09/2026",
-    "dia_fim": "06/10/2026",
-    "valor_desconto": "22%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-14",
-    "container_name": "aff-list-14",
-    "is_mar_aberto": false,
-    "days_left": 1,
-    "discount_num": 22,
-    "is_reais": false
-  },
-  {
-    "nome": "MEUMELI",
-    "acao": "Sellers",
-    "dia_inicio": "11/09/2026",
-    "dia_fim": "06/10/2026",
-    "valor_desconto": "18%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-15",
-    "container_name": "aff-list-15",
-    "is_mar_aberto": false,
-    "days_left": 1,
-    "discount_num": 18,
-    "is_reais": false
-  },
-  {
-    "nome": "MELIBAIXOU",
-    "acao": "Sellers",
-    "dia_inicio": "14/09/2026",
-    "dia_fim": "07/10/2026",
-    "valor_desconto": "25%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-16",
-    "container_name": "aff-list-16",
-    "is_mar_aberto": false,
-    "days_left": 2,
-    "discount_num": 25,
-    "is_reais": false
-  },
-  {
-    "nome": "COMPRINHASML",
-    "acao": "Sellers",
-    "dia_inicio": "14/09/2026",
-    "dia_fim": "07/10/2026",
-    "valor_desconto": "22%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-18",
-    "container_name": "aff-list-18",
-    "is_mar_aberto": false,
-    "days_left": 2,
-    "discount_num": 22,
-    "is_reais": false
-  },
-  {
-    "nome": "OFERTASMELI",
-    "acao": "Sellers",
-    "dia_inicio": "15/09/2026",
-    "dia_fim": "08/10/2026",
-    "valor_desconto": "30%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-20",
-    "container_name": "aff-list-20",
-    "is_mar_aberto": false,
-    "days_left": 3,
-    "discount_num": 30,
-    "is_reais": false
-  },
-  {
-    "nome": "OFERTAAQUI",
-    "acao": "Sellers",
-    "dia_inicio": "15/09/2026",
-    "dia_fim": "08/10/2026",
-    "valor_desconto": "25%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-19",
-    "container_name": "aff-list-19",
-    "is_mar_aberto": false,
-    "days_left": 3,
-    "discount_num": 25,
-    "is_reais": false
-  },
-  {
-    "nome": "APROVEITAESSA",
-    "acao": "Sellers",
-    "dia_inicio": "15/09/2026",
-    "dia_fim": "08/10/2026",
-    "valor_desconto": "20%",
-    "min_compra": "1",
-    "desconto_max": "500",
-    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-21",
-    "container_name": "aff-list-21",
-    "is_mar_aberto": false,
-    "days_left": 3,
-    "discount_num": 20,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Tecnologia e Eletrodomésticos"
   },
   {
     "nome": "VOLTEMELI",
@@ -373,7 +220,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 20,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Construção e Indústria"
   },
   {
     "nome": "TUDOMELI",
@@ -388,7 +236,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 20,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Acessórios para Veículos"
   },
   {
     "nome": "BRINCADEIRAS",
@@ -403,7 +252,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 15,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Brinquedos e Bebês"
   },
   {
     "nome": "VALEMAISAQUI",
@@ -418,7 +268,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 15,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Casa e Decoração"
   },
   {
     "nome": "PROMO15",
@@ -433,7 +284,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 15,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Moda"
   },
   {
     "nome": "ACHADOSMELI",
@@ -448,7 +300,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 15,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Beleza"
   },
   {
     "nome": "TODOSEU",
@@ -463,7 +316,168 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 4,
     "discount_num": 8,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Casas Bahia"
+  },
+  {
+    "nome": "BATEUPRONTOCUPOM",
+    "acao": "Sellers",
+    "dia_inicio": "10/09/2026",
+    "dia_fim": "05/10/2026",
+    "valor_desconto": "30%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-10",
+    "container_name": "aff-list-10",
+    "is_mar_aberto": false,
+    "days_left": 0,
+    "discount_num": 30,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "SAINDOBARRATO",
+    "acao": "Sellers",
+    "dia_inicio": "10/09/2026",
+    "dia_fim": "05/10/2026",
+    "valor_desconto": "30%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-11",
+    "container_name": "aff-list-11",
+    "is_mar_aberto": false,
+    "days_left": 0,
+    "discount_num": 30,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "APROVEITAMUITO",
+    "acao": "Sellers",
+    "dia_inicio": "11/09/2026",
+    "dia_fim": "06/10/2026",
+    "valor_desconto": "25%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-13",
+    "container_name": "aff-list-13",
+    "is_mar_aberto": false,
+    "days_left": 1,
+    "discount_num": 25,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "PEGAMELI",
+    "acao": "Sellers",
+    "dia_inicio": "11/09/2026",
+    "dia_fim": "06/10/2026",
+    "valor_desconto": "22%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-14",
+    "container_name": "aff-list-14",
+    "is_mar_aberto": false,
+    "days_left": 1,
+    "discount_num": 22,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "MEUMELI",
+    "acao": "Sellers",
+    "dia_inicio": "11/09/2026",
+    "dia_fim": "06/10/2026",
+    "valor_desconto": "18%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-15",
+    "container_name": "aff-list-15",
+    "is_mar_aberto": false,
+    "days_left": 1,
+    "discount_num": 18,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "MELIBAIXOU",
+    "acao": "Sellers",
+    "dia_inicio": "14/09/2026",
+    "dia_fim": "07/10/2026",
+    "valor_desconto": "25%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-16",
+    "container_name": "aff-list-16",
+    "is_mar_aberto": false,
+    "days_left": 2,
+    "discount_num": 25,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "COMPRINHASML",
+    "acao": "Sellers",
+    "dia_inicio": "14/09/2026",
+    "dia_fim": "07/10/2026",
+    "valor_desconto": "22%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-18",
+    "container_name": "aff-list-18",
+    "is_mar_aberto": false,
+    "days_left": 2,
+    "discount_num": 22,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "OFERTASMELI",
+    "acao": "Sellers",
+    "dia_inicio": "15/09/2026",
+    "dia_fim": "08/10/2026",
+    "valor_desconto": "30%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-20",
+    "container_name": "aff-list-20",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 30,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "OFERTAAQUI",
+    "acao": "Sellers",
+    "dia_inicio": "15/09/2026",
+    "dia_fim": "08/10/2026",
+    "valor_desconto": "25%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-19",
+    "container_name": "aff-list-19",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 25,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
+  },
+  {
+    "nome": "APROVEITAESSA",
+    "acao": "Sellers",
+    "dia_inicio": "15/09/2026",
+    "dia_fim": "08/10/2026",
+    "valor_desconto": "20%",
+    "min_compra": "1",
+    "desconto_max": "500",
+    "container_url": "https://lista.mercadolivre.com.br/_Container_aff-list-21",
+    "container_name": "aff-list-21",
+    "is_mar_aberto": false,
+    "days_left": 3,
+    "discount_num": 20,
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "PRECINHOBOM",
@@ -478,7 +492,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 6,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "BATEDESCONTO",
@@ -493,7 +508,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 6,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOBOM",
@@ -508,7 +524,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 6,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "PEGANOMELI",
@@ -523,7 +540,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 6,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MLVANTAGEM",
@@ -538,7 +556,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 8,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "BARRATINHOAQUI",
@@ -553,7 +572,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 8,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "COMPRANOMELI",
@@ -568,7 +588,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 8,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "CARRINHOCHEIOJA",
@@ -583,7 +604,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 9,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOJUSTO",
@@ -598,7 +620,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 9,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "VALEMUITO",
@@ -613,7 +636,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 10,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "FOIBARATO",
@@ -628,7 +652,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 20,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "BARRATINHOJA",
@@ -643,7 +668,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 20,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "SAIUBARATO",
@@ -658,7 +684,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 20,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "PRECINHOPONTO",
@@ -673,7 +700,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 20,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOESPECIAL",
@@ -688,7 +716,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 20,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "CUSTOUPOUQUINHO",
@@ -703,7 +732,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 20,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELIGARANTE",
@@ -718,7 +748,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 22,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELISALVA",
@@ -733,7 +764,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 22,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELICOMPRA",
@@ -748,7 +780,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 22,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MLVANTAGENS",
@@ -763,7 +796,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 22,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "VEMDEOFFMELI",
@@ -778,7 +812,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 24,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELICOMPRACERTA",
@@ -793,7 +828,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 24,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MLMELHORESPROMOS",
@@ -808,7 +844,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 24,
     "discount_num": 18,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "QUEROMAIS",
@@ -823,7 +860,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "CUPOMAQUI",
@@ -838,7 +876,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MAISOFERTA",
@@ -853,7 +892,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "TACOMVC",
@@ -868,7 +908,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MLCOMPRANDO",
@@ -883,7 +924,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELICOMPRAS",
@@ -898,7 +940,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELIDESCONTEI",
@@ -913,7 +956,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOSML",
@@ -928,7 +972,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "SEMPREML",
@@ -943,7 +988,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "VIPAQUI",
@@ -958,7 +1004,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "ACHEIOFF",
@@ -973,7 +1020,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELHORESCUPONS",
@@ -988,7 +1036,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "VOLTAAQUI",
@@ -1003,7 +1052,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "SALVEIESSA",
@@ -1018,7 +1068,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "AGORAVAI",
@@ -1033,7 +1084,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MLCUPOM",
@@ -1048,7 +1100,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "TOCOUNOML",
@@ -1063,7 +1116,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELHORCUPOMML",
@@ -1078,7 +1132,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "CARRINHOCHEIO",
@@ -1093,7 +1148,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "CUPONZINHO",
@@ -1108,7 +1164,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELINOCARRINHO",
@@ -1123,7 +1180,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELICOMPRAAI",
@@ -1138,7 +1196,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "PROMONOMELI",
@@ -1153,7 +1212,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 18,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MELINOVALE",
@@ -1168,7 +1228,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 26,
     "discount_num": 18,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOMELI",
@@ -1183,7 +1244,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 28,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "OFFNOMELI",
@@ -1198,7 +1260,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 28,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "SONOMELI",
@@ -1213,7 +1276,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 28,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "VEMPROMELI",
@@ -1228,7 +1292,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 28,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "OFFAQUI",
@@ -1243,7 +1308,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 34,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "ECONOMIA",
@@ -1258,7 +1324,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 34,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "PROMOCERTA",
@@ -1273,7 +1340,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 34,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "VALEPROMO",
@@ -1288,7 +1356,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 35,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MEUVALE",
@@ -1303,7 +1372,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 35,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTO",
@@ -1318,7 +1388,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 35,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOAQUI",
@@ -1333,7 +1404,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 41,
     "discount_num": 30,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "MEUACHADO",
@@ -1348,7 +1420,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 41,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "DESCONTOU",
@@ -1363,7 +1436,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 41,
     "discount_num": 25,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   },
   {
     "nome": "LEVAESSA",
@@ -1378,7 +1452,8 @@ const COUPONS = [
     "is_mar_aberto": false,
     "days_left": 41,
     "discount_num": 22,
-    "is_reais": false
+    "is_reais": false,
+    "categoria": "Seleção Vendedores"
   }
 ];
 
@@ -1393,14 +1468,6 @@ function expInfo(c){
   if(d<=3)return{l:d+'d restantes',cls:'breve'};
   return{l:'Válido até '+c.dia_fim,cls:'ok'};
 }
-function cat(a){
-  if(/fashion/i.test(a))return'Moda';
-  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Casa e Decoração';
-  if(/sellers/i.test(a))return'Seleção Vendedores';
-  if(/mar aberto/i.test(a))return'Outros';
-  // Se não bater com nenhuma categoria conhecida, usa o próprio texto (ex: nome da loja)
-  return a || 'Outros';
-}
 function cardCls(c){
   if(c.is_mar_aberto)return'site';
   const d=dl(c.dia_fim);
@@ -1411,19 +1478,37 @@ function cardCls(c){
 let af='all', sq='';
 function matches(c){
   if(af==='mar'&&!c.is_mar_aberto)return false;
-  if(af==='Moda'&&cat(c.acao)!=='Moda')return false;
-  if(af==='Casa e Decoração'&&cat(c.acao)!=='Casa e Decoração')return false;
-  if(af==='Seleção Vendedores'&&cat(c.acao)!=='Seleção Vendedores')return false;
-  if(af==='Outros'){
-    const knownCats=['Moda','Casa e Decoração','Seleção Vendedores'];
-    if(c.is_mar_aberto||knownCats.includes(cat(c.acao)))return false;
+  if(af!=='all'&&af!=='mar'&&c.categoria!==af)return false;
+  if(sq){
+    const q=sq.toLowerCase();
+    return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q)||(c.categoria||'').toLowerCase().includes(q);
   }
-  if(sq){const q=sq.toLowerCase();return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);}
   return true;
+}
+function buildFilters(){
+  const cats={};
+  COUPONS.forEach(c=>{if(!c.is_mar_aberto)cats[c.categoria]=(cats[c.categoria]||0)+1;});
+  const mar=COUPONS.filter(c=>c.is_mar_aberto).length;
+  const keys=Object.keys(cats).sort((a,b)=>{
+    const la=a==='Seleção Vendedores'?1:0, lb=b==='Seleção Vendedores'?1:0;
+    return la-lb||cats[b]-cats[a]||a.localeCompare(b,'pt');
+  });
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  let html='<button class="filter-btn active" data-f="all">Todos <span class="cnt">'+COUPONS.length+'</span></button>';
+  if(mar)html+='<button class="filter-btn" data-f="mar">🌐 Todo o site <span class="cnt">'+mar+'</span></button>';
+  keys.forEach(k=>{html+='<button class="filter-btn" data-f="'+esc(k)+'">'+esc(k)+' <span class="cnt">'+cats[k]+'</span></button>';});
+  const box=document.getElementById('filters');
+  box.innerHTML=html;
+  box.querySelectorAll('.filter-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      box.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');af=b.dataset.f;render();
+    });
+  });
 }
 function renderCard(c){
   const exp=expInfo(c),cls=cardCls(c);
-  const catLabel=c.is_mar_aberto?'Todo o site':cat(c.acao);
+  const catLabel=c.categoria;
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
     ?`<a class="container-link" href="${c.container_url}" target="_blank" rel="noopener">Ver lista</a>`
@@ -1463,16 +1548,8 @@ function renderCard(c){
 }
 function counts(){
   const n=COUPONS;
-  document.getElementById('c-all').textContent=n.length;
-  document.getElementById('c-mar').textContent=n.filter(c=>c.is_mar_aberto).length;
-  document.getElementById('c-fas').textContent=n.filter(c=>cat(c.acao)==='Moda').length;
-  document.getElementById('c-furn').textContent=n.filter(c=>cat(c.acao)==='Casa e Decoração').length;
-  document.getElementById('c-sel').textContent=n.filter(c=>cat(c.acao)==='Seleção Vendedores').length;
-  document.getElementById('c-out').textContent=n.filter(c=>{
-    const knownCats=['Moda','Casa e Decoração','Seleção Vendedores'];
-    return !c.is_mar_aberto && !knownCats.includes(cat(c.acao));
-  }).length;
-  const maxD=n.length?Math.max(...n.map(c=>c.discount_num)):0;
+  const pct=n.filter(c=>!c.is_reais);
+  const maxD=pct.length?Math.max(...pct.map(c=>c.discount_num)):0;
   const hoje=n.filter(c=>dl(c.dia_fim)===0).length;
   document.getElementById('hero-stats').innerHTML=`
     <div class="hero-stat"><div class="hero-stat-n">${n.length}</div><div class="hero-stat-l">Cupons ativos</div></div>
@@ -1494,14 +1571,8 @@ function copy(btn,code){
   btn.textContent='✓ Copiado!';btn.classList.add('copied');
   setTimeout(()=>{btn.textContent='Copiar código';btn.classList.remove('copied')},2000);
 }
-document.querySelectorAll('.filter-btn').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');af=b.dataset.f;render();
-  });
-});
 document.getElementById('search').addEventListener('input',e=>{sq=e.target.value.trim();render()});
-counts();render();
+counts();buildFilters();render();
 </script>
 </body>
 </html>
