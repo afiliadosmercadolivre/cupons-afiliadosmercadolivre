@@ -139,6 +139,41 @@ def is_reais(val):
     """Retorna True se o valor do desconto está em reais (R$) em vez de percentual."""
     return "R$" in val or "r$" in val.lower()
 
+CATEGORIAS_PT = [
+    (r"mar\s*aberto",                  "Todo o site"),
+    (r"seller",                         "Seleção Vendedores"),
+    (r"toys|baby|babies|babys",         "Brinquedos e Bebês"),
+    (r"tech|electronic",                "Tecnologia e Eletrodomésticos"),
+    (r"furnishing|houseware|furniture", "Casa e Decoração"),
+    (r"fashion",                        "Moda"),
+    (r"construction|industry",          "Construção e Indústria"),
+    (r"beauty",                         "Beleza"),
+    (r"vehicle|automotive",             "Acessórios para Veículos"),
+    (r"sport",                          "Esportes"),
+    (r"health",                         "Saúde"),
+    (r"^e!$|entertainment",             "Entretenimento"),
+    (r"cpg|consumer",                   "Bens de Consumo"),
+]
+
+def categoria_pt(acao):
+    """Traduz a categoria (coluna A). Se não reconhecer, mantém o texto original (ex: nome de loja)."""
+    a = (acao or "").strip().lower()
+    for pat, label in CATEGORIAS_PT:
+        if re.search(pat, a):
+            return label
+    return (acao or "").strip()
+
+def sort_key(c):
+    """Prioridade: 1) Todo o site  2) demais categorias  3) Seleção Vendedores.
+    Dentro de cada grupo: expira primeiro -> maior desconto (%)."""
+    if c["is_mar_aberto"]:
+        tier = 0
+    elif c["categoria"] == "Seleção Vendedores":
+        tier = 2
+    else:
+        tier = 1
+    return (tier, c["days_left"], -c["discount_num"])
+
 def parse_coupons(rows):
     coupons = []
     for row in rows:
@@ -170,8 +205,9 @@ def parse_coupons(rows):
             "days_left": dl,
             "discount_num": dn,
             "is_reais": eh_reais,
+            "categoria": categoria_pt(acao),
         })
-    coupons.sort(key=lambda c: (0 if c["is_mar_aberto"] else 1, c["days_left"], -c["discount_num"]))
+    coupons.sort(key=sort_key)
     return coupons
 
 def to_js_array(coupons):
@@ -338,12 +374,7 @@ HTML_TEMPLATE = """\
 
 <div class="toolbar">
   <div class="toolbar-inner">
-    <button class="filter-btn active" data-f="all">Todos <span class="cnt" id="c-all"></span></button>
-    <button class="filter-btn" data-f="mar">🌐 Todo o site <span class="cnt" id="c-mar"></span></button>
-    <button class="filter-btn" data-f="Moda">Moda <span class="cnt" id="c-fas"></span></button>
-    <button class="filter-btn" data-f="Casa">Casa e Decoração <span class="cnt" id="c-furn"></span></button>
-    <button class="filter-btn" data-f="Sellers">Seleção Vendedores <span class="cnt" id="c-sel"></span></button>
-    <button class="filter-btn" data-f="Outros">Outros <span class="cnt" id="c-out"></span></button>
+    <div id="filters" style="display:contents"></div>
     <input class="search" id="search" type="search" placeholder="🔍  Buscar cupom…"/>
   </div>
 </div>
@@ -372,14 +403,6 @@ function expInfo(c){{
   if(d<=3)return{{l:d+'d restantes',cls:'breve'}};
   return{{l:'Válido até '+c.dia_fim,cls:'ok'}};
 }}
-function cat(a){{
-  if(/fashion/i.test(a))return'Moda';
-  if(/furnishing|houseware|furniture|living|dining/i.test(a))return'Casa e Decoração';
-  if(/sellers/i.test(a))return'Seleção Vendedores';
-  if(/mar aberto/i.test(a))return'Outros';
-  // Se não bater com nenhuma categoria conhecida, usa o próprio texto (ex: nome da loja)
-  return a || 'Outros';
-}}
 function cardCls(c){{
   if(c.is_mar_aberto)return'site';
   const d=dl(c.dia_fim);
@@ -390,19 +413,37 @@ function cardCls(c){{
 let af='all', sq='';
 function matches(c){{
   if(af==='mar'&&!c.is_mar_aberto)return false;
-  if(af==='Moda'&&cat(c.acao)!=='Moda')return false;
-  if(af==='Casa e Decoração'&&cat(c.acao)!=='Casa e Decoração')return false;
-  if(af==='Seleção Vendedores'&&cat(c.acao)!=='Seleção Vendedores')return false;
-  if(af==='Outros'){{
-    const knownCats=['Moda','Casa e Decoração','Seleção Vendedores'];
-    if(c.is_mar_aberto||knownCats.includes(cat(c.acao)))return false;
+  if(af!=='all'&&af!=='mar'&&c.categoria!==af)return false;
+  if(sq){{
+    const q=sq.toLowerCase();
+    return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q)||(c.categoria||'').toLowerCase().includes(q);
   }}
-  if(sq){{const q=sq.toLowerCase();return c.nome.toLowerCase().includes(q)||(c.container_name||'').toLowerCase().includes(q);}}
   return true;
+}}
+function buildFilters(){{
+  const cats={{}};
+  COUPONS.forEach(c=>{{if(!c.is_mar_aberto)cats[c.categoria]=(cats[c.categoria]||0)+1;}});
+  const mar=COUPONS.filter(c=>c.is_mar_aberto).length;
+  const keys=Object.keys(cats).sort((a,b)=>{{
+    const la=a==='Seleção Vendedores'?1:0, lb=b==='Seleção Vendedores'?1:0;
+    return la-lb||cats[b]-cats[a]||a.localeCompare(b,'pt');
+  }});
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+  let html='<button class="filter-btn active" data-f="all">Todos <span class="cnt">'+COUPONS.length+'</span></button>';
+  if(mar)html+='<button class="filter-btn" data-f="mar">🌐 Todo o site <span class="cnt">'+mar+'</span></button>';
+  keys.forEach(k=>{{html+='<button class="filter-btn" data-f="'+esc(k)+'">'+esc(k)+' <span class="cnt">'+cats[k]+'</span></button>';}});
+  const box=document.getElementById('filters');
+  box.innerHTML=html;
+  box.querySelectorAll('.filter-btn').forEach(b=>{{
+    b.addEventListener('click',()=>{{
+      box.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');af=b.dataset.f;render();
+    }});
+  }});
 }}
 function renderCard(c){{
   const exp=expInfo(c),cls=cardCls(c);
-  const catLabel=c.is_mar_aberto?'Todo o site':cat(c.acao);
+  const catLabel=c.categoria;
   const catCls=c.is_mar_aberto?'pill-site':'pill-cat';
   const container=c.container_url
     ?`<a class="container-link" href="${{c.container_url}}" target="_blank" rel="noopener">Ver lista</a>`
@@ -442,16 +483,8 @@ function renderCard(c){{
 }}
 function counts(){{
   const n=COUPONS;
-  document.getElementById('c-all').textContent=n.length;
-  document.getElementById('c-mar').textContent=n.filter(c=>c.is_mar_aberto).length;
-  document.getElementById('c-fas').textContent=n.filter(c=>cat(c.acao)==='Moda').length;
-  document.getElementById('c-furn').textContent=n.filter(c=>cat(c.acao)==='Casa e Decoração').length;
-  document.getElementById('c-sel').textContent=n.filter(c=>cat(c.acao)==='Seleção Vendedores').length;
-  document.getElementById('c-out').textContent=n.filter(c=>{{
-    const knownCats=['Moda','Casa e Decoração','Seleção Vendedores'];
-    return !c.is_mar_aberto && !knownCats.includes(cat(c.acao));
-  }}).length;
-  const maxD=n.length?Math.max(...n.map(c=>c.discount_num)):0;
+  const pct=n.filter(c=>!c.is_reais);
+  const maxD=pct.length?Math.max(...pct.map(c=>c.discount_num)):0;
   const hoje=n.filter(c=>dl(c.dia_fim)===0).length;
   document.getElementById('hero-stats').innerHTML=`
     <div class="hero-stat"><div class="hero-stat-n">${{n.length}}</div><div class="hero-stat-l">Cupons ativos</div></div>
@@ -473,14 +506,8 @@ function copy(btn,code){{
   btn.textContent='✓ Copiado!';btn.classList.add('copied');
   setTimeout(()=>{{btn.textContent='Copiar código';btn.classList.remove('copied')}},2000);
 }}
-document.querySelectorAll('.filter-btn').forEach(b=>{{
-  b.addEventListener('click',()=>{{
-    document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');af=b.dataset.f;render();
-  }});
-}});
 document.getElementById('search').addEventListener('input',e=>{{sq=e.target.value.trim();render()}});
-counts();render();
+counts();buildFilters();render();
 </script>
 </body>
 </html>
@@ -517,6 +544,6 @@ if __name__ == "__main__":
             seen.add(key)
             all_coupons.append(c)
 
-    all_coupons.sort(key=lambda c: (0 if c["is_mar_aberto"] else 1, c["days_left"], -c["discount_num"]))
+    all_coupons.sort(key=sort_key)
     print(f"   Total: {len(all_coupons)} cupons únicos")
     generate_html(all_coupons)
