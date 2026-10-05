@@ -14,31 +14,43 @@ OUTPUT_FILE = "index.html"
 MONTH_PT = ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho",
             "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
 
-def get_sheet_name(service):
-    """Detecta automaticamente a aba do mês atual (ex: Agosto/26)."""
+def _norm(s):
+    """Normaliza nome de aba: minúsculo, sem acento, sem espaços extras."""
+    import unicodedata
+    s = unicodedata.normalize("NFD", s or "")
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    return re.sub(r"\s+", "", s).lower()
+
+def get_sheet_names(service):
+    """Retorna as abas do mês atual e do mês anterior (cupons podem virar o mês)."""
     from datetime import timezone, timedelta
     now_brt = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=-3)))
-    # Tenta o mês atual e o anterior (caso vire o mês no meio do dia)
-    candidates = []
-    for delta in [0, -1, 1]:
+
+    def label(delta):
         m = now_brt.month + delta
         y = now_brt.year
         if m < 1: m, y = 12, y - 1
         if m > 12: m, y = 1, y + 1
-        short_year = str(y)[-2:]
-        candidates.append(f"{MONTH_PT[m]}/{short_year}")
+        return f"{MONTH_PT[m]}/{str(y)[-2:]}"
 
-    # Lista todas as abas disponíveis na planilha
     meta = service.spreadsheets().get(spreadsheetId=SPREADSHEET_ID).execute()
     sheets = [s["properties"]["title"] for s in meta["sheets"]]
+    by_norm = {_norm(t): t for t in sheets}
     print(f"   Abas encontradas: {sheets}")
 
-    for candidate in candidates:
-        if candidate in sheets:
-            print(f"   Aba selecionada: {candidate}")
-            return candidate
+    selected = []
+    for delta, nome in [(0, "mês atual"), (-1, "mês anterior")]:
+        wanted = label(delta)
+        real = by_norm.get(_norm(wanted))
+        if real:
+            print(f"   Aba {nome}: '{real}' ✅")
+            selected.append(real)
+        else:
+            print(f"   ⚠️ Aba {nome} '{wanted}' NÃO encontrada")
 
-    raise RuntimeError(f"Nenhuma aba encontrada para {candidates}. Abas disponíveis: {sheets}")
+    if not selected:
+        raise RuntimeError(f"Nenhuma aba encontrada. Abas disponíveis: {sheets}")
+    return selected
 
 COL = {
     "acao": 0, "hora_inicio": 1, "dia_inicio": 2, "dia_fim": 3,
@@ -490,11 +502,21 @@ def generate_html(coupons):
 if __name__ == "__main__":
     print("🔐 Autenticando na Google Sheets API…")
     service = get_service()
-    print("📊 Detectando aba do mês atual…")
-    sheet_name = get_sheet_name(service)
-    print("📊 Buscando dados da planilha…")
-    rows = fetch_rows(service, sheet_name)
-    print(f"   {len(rows)} linhas lidas")
-    coupons = parse_coupons(rows)
-    print(f"   {len(coupons)} cupons com 'Tem verba' no mês atual")
-    generate_html(coupons)
+    print("📊 Detectando abas (mês atual + anterior)…")
+    sheet_names = get_sheet_names(service)
+
+    all_coupons, seen = [], set()
+    for sheet_name in sheet_names:
+        rows = fetch_rows(service, sheet_name)
+        found = parse_coupons(rows)
+        print(f"   [{sheet_name}] {len(rows)} linhas lidas → {len(found)} cupons com 'Tem verba'")
+        for c in found:
+            key = (c["nome"], c["acao"], c["dia_inicio"], c["dia_fim"], c["container_url"], c["container_name"])
+            if key in seen:
+                continue
+            seen.add(key)
+            all_coupons.append(c)
+
+    all_coupons.sort(key=lambda c: (0 if c["is_mar_aberto"] else 1, c["days_left"], -c["discount_num"]))
+    print(f"   Total: {len(all_coupons)} cupons únicos")
+    generate_html(all_coupons)
