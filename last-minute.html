@@ -37,7 +37,17 @@
     select{min-width:210px}
     input{margin-left:auto;width:min(320px,100%)}
     input::placeholder{color:#888}
-    .list{max-width:1120px;margin:24px auto;padding:0 24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px}
+    .list{max-width:1120px;margin:24px auto;padding:0 24px 28px;display:flex;flex-direction:column;gap:14px}
+    .category-section{background:#101010;border:1px solid #303030;border-radius:16px;overflow:hidden}
+    .category-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;padding:16px 18px;cursor:pointer;background:#171717}
+    .category-summary::-webkit-details-marker{display:none}
+    .category-summary:hover{background:#202020}
+    .category-heading{display:flex;align-items:center;gap:10px;min-width:0;font-size:15px;font-weight:900}
+    .category-dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);flex:none;box-shadow:0 0 12px rgba(255,230,0,.35)}
+    .category-count{color:#aaa;font-size:11px;font-weight:700;white-space:nowrap}
+    .category-chevron{color:var(--yellow);font-size:17px;transition:transform .18s ease}
+    .category-section[open] .category-chevron{transform:rotate(180deg)}
+    .group-grid{padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
     .card{background:linear-gradient(155deg,#191919 0%,#111 100%);border:1px solid #353535;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
     .card-top,.prices,.meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
     .card-top{justify-content:space-between;align-items:flex-start}
@@ -61,7 +71,7 @@
     .link.disabled{background:#2b2b2b;color:#888;pointer-events:none}
     .empty{grid-column:1/-1;text-align:center;padding:56px 20px;border:1px dashed #444;border-radius:var(--radius);color:#aaa;font-weight:700}
     .footer{text-align:center;color:#777;font-size:11px;font-weight:600;padding:10px 24px 30px}
-    @media(max-width:700px){.hdr{padding:10px 16px;flex-wrap:wrap}.nav{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.nav a{white-space:nowrap}.updated{margin-left:auto}.hero,.toolbar{padding-left:16px;padding-right:16px}.list{padding-left:16px;padding-right:16px;grid-template-columns:1fr}input{margin-left:0;width:100%}}
+    @media(max-width:700px){.hdr{padding:10px 16px;flex-wrap:wrap}.nav{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.nav a{white-space:nowrap}.updated{margin-left:auto}.hero,.toolbar{padding-left:16px;padding-right:16px}.list{padding-left:16px;padding-right:16px}.group-grid{padding:10px;grid-template-columns:1fr}.category-summary{padding:14px}input{margin-left:0;width:100%}}
   </style>
 </head>
 <body>
@@ -73,7 +83,7 @@
     <a href="cupons-extras.html">Cupons Extras</a>
     <a class="active" href="last-minute.html">Ofertas de hoje</a>
   </nav>
-  <span class="updated">Atualizado em 04/11/2026 11:56</span>
+  <span class="updated">Atualizado em 04/11/2026 13:20</span>
 </header>
 <section class="hero">
   <div class="hero-inner">
@@ -90,6 +100,84 @@
 <div class="footer">Ofertas sujeitas à disponibilidade e às condições informadas pelo Comercial. Confirme os detalhes antes de divulgar.</div>
 <script>
 const ITEMS = [
+  {
+    "vertical": "Beleza",
+    "data_oferta": "04/11/2026",
+    "produto": "2 Lisinha Sérum Telocapil Reduz Pelos Corporais P/ Depilação",
+    "url": "https://www.mercadolivre.com.br/2-lisinha-serum-telocapil-reduz-pelos-corporais-p-depilacao/up/MLBU4470732168?pdp_filters=deal%3AMLB1891765-1#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=9\u0026type=product\u0026tracking_id=6d401893-cf87-44d4-9cd6-fb6f19289df3\u0026overlay_label_capability=not_apply\u0026wid=MLB4953419629\u0026sid=search",
+    "preco_de": "R$217,00",
+    "preco_por": "R$102,57",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "Beleza",
+    "data_oferta": "04/11/2026",
+    "produto": "Creme Gel Hidratante Facial Pele Plena Kokeshi Para Tipo de pele Com Rosa Mosqueta e Oleo de Girassol Ozonizado",
+    "url": "https://www.mercadolivre.com.br/creme-gel-hidratante-facial-pele-plena-kokeshi-para-tipo-de-pele-com-rosa-mosqueta-e-oleo-de-girassol-ozonizado/p/MLB28957736?pdp_filters=official_store%3A139252#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=9\u0026type=product\u0026tracking_id=5639841d-1b11-4018-81b9-a5a85cce6d1a\u0026overlay_label_capability=not_apply\u0026wid=MLB5336684746\u0026sid=search",
+    "preco_de": "R$43,90",
+    "preco_por": "R$25,90",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "Beleza",
+    "data_oferta": "04/11/2026",
+    "produto": "Kit Hidrabene Linha Clareadora Sabonete Serum E Protetor 70",
+    "url": "https://www.mercadolivre.com.br/kit-hidrabene-linha-clareadora-sabonete-serum-e-protetor-70/p/MLB2085859759?pdp_filters=deal%3AMLB1891777-1#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=1\u0026type=product\u0026tracking_id=81fc6caf-edc2-4627-92f2-20e1e4cdb88b\u0026overlay_label_capability=not_apply\u0026wid=MLB7664768532\u0026sid=search",
+    "preco_de": "R$219,49",
+    "preco_por": "R$79,90",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "Beleza",
+    "data_oferta": "04/11/2026",
+    "produto": "Kit Popozuda Lisinha Redutor + Clarinha Sérum Clareador 30ml",
+    "url": "https://www.mercadolivre.com.br/kit-popozuda-lisinha-redutor-clarinha-serum-clareador-30ml/p/MLB2097373031?pdp_filters=deal%3AMLB1891765-1#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=3\u0026type=product\u0026tracking_id=6d401893-cf87-44d4-9cd6-fb6f19289df3\u0026overlay_label_capability=not_apply\u0026wid=MLB7817952690\u0026sid=search",
+    "preco_de": "R$197,99",
+    "preco_por": "R$113,97",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "Beleza",
+    "data_oferta": "04/11/2026",
+    "produto": "Sérum Clareador Corporal Uniforme Intimo Popozuda Clarinha",
+    "url": "https://www.mercadolivre.com.br/serum-clareador-corporal-uniforme-intimo-popozuda-clarinha/up/MLBU4056902783?pdp_filters=deal%3AMLB1891765-1#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=6\u0026type=product\u0026tracking_id=6d401893-cf87-44d4-9cd6-fb6f19289df3\u0026overlay_label_capability=not_apply\u0026wid=MLB6923224522\u0026sid=search",
+    "preco_de": "R$147,00",
+    "preco_por": "R$55,28",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "Beleza",
+    "data_oferta": "04/11/2026",
+    "produto": "Sérum Facial Antiidade Kokeshi 30ml Com Ácido Hialurônico e Retinol",
+    "url": "https://www.mercadolivre.com.br/serum-facial-antiidade-kokeshi-30ml-com-acido-hialuronico-e-retinol/p/MLB53299315?pdp_filters=official_store%3A139252#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=36\u0026type=product\u0026tracking_id=5639841d-1b11-4018-81b9-a5a85cce6d1a\u0026overlay_label_capability=not_apply\u0026wid=MLB4145556465\u0026sid=search",
+    "preco_de": "R$65,90",
+    "preco_por": "R$35,91",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
   {
     "vertical": "Casa \u0026 Construção",
     "data_oferta": "04/11/2026",
@@ -145,6 +233,19 @@ const ITEMS = [
   {
     "vertical": "CPG (Bens de Consumo)",
     "data_oferta": "04/11/2026",
+    "produto": "Detergente Lava Louças Ypê Com 6 Unidades Neutro 500ml",
+    "url": "https://www.mercadolivre.com.br/detergente-lava-loucas-ype-com-6-unidades-neutro-500ml/p/MLB21817157?pdp_filters=item_id%3AMLB3847148633#polycard_client=mshops-appearance-api\u0026tracking_id=f5e90823f8d1b55dc7bda1be10b194bd\u0026wid=MLB3847148633\u0026sid=storefronts\u0026global_position=6",
+    "preco_de": "R$19,99",
+    "preco_por": "R$11,99",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "CPG (Bens de Consumo)",
+    "data_oferta": "04/11/2026",
     "produto": "KIT DURACELL COM 16 PILHAS AA E 16 PILHAS AAA",
     "url": "https://produto.mercadolivre.com.br/MLB-4932250992",
     "preco_de": "R$195,70",
@@ -182,6 +283,19 @@ const ITEMS = [
     "informacoes_extras": ""
   },
   {
+    "vertical": "CPG (Bens de Consumo)",
+    "data_oferta": "04/11/2026",
+    "produto": "Tira Manchas em Pó Vanish Oxi Action Crystal White Refil 1kg para Roupas Brancas, Sem Cloro, com Percarbonato, Remove Manchas Difíceis e Deixa o Branco Até 5 Tons Mais Branco",
+    "url": "https://www.mercadolivre.com.br/tira-manchas-em-po-vanish-oxi-action-crystal-white-refil-1kg-para-roupas-brancas-sem-cloro-com-percarbonato-remove-manchas-dificeis-e-deixa-o-branco-ate-5-tons-mais-branco/p/MLB17476398?pdp_filters=item_id:MLB2897420223",
+    "preco_de": "R$65,99",
+    "preco_por": "R$29,66",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
     "vertical": "Esportes",
     "data_oferta": "04/11/2026",
     "produto": "Bola De Futebol Society 8 X Penalty Preto E Branco",
@@ -191,19 +305,6 @@ const ITEMS = [
     "cupom": "",
     "tipo_cupom": "",
     "desconto": "16%",
-    "codigo": "",
-    "informacoes_extras": ""
-  },
-  {
-    "vertical": "Moda",
-    "data_oferta": "04/11/2026",
-    "produto": "CBT",
-    "url": "",
-    "preco_de": "",
-    "preco_por": "",
-    "cupom": "",
-    "tipo_cupom": "",
-    "desconto": "#DIV/0!",
     "codigo": "",
     "informacoes_extras": ""
   },
@@ -340,6 +441,19 @@ const ITEMS = [
   {
     "vertical": "Pet Shop",
     "data_oferta": "04/11/2026",
+    "produto": "Whiskas ração úmida para gatos carne ao molho 85gr com kit de 20 sachês",
+    "url": "https://www.mercadolivre.com.br/whiskas-racao-umida-para-gatos-carne-ao-molho-85gr-com-kit-de-20-saches/p/MLB24744234?pdp_filters=deal%3AMLB1851203-1#polycard_client=search-desktop\u0026be_origin=backend\u0026overlay_label=not_apply\u0026search_layout=grid\u0026position=4\u0026type=product\u0026tracking_id=2858f195-55ae-4071-8afb-8d15f509a194\u0026overlay_label_capability=not_apply\u0026wid=MLB4231900843\u0026sid=search",
+    "preco_de": "R$71,99",
+    "preco_por": "R$39,90",
+    "cupom": "",
+    "tipo_cupom": "",
+    "desconto": "",
+    "codigo": "",
+    "informacoes_extras": ""
+  },
+  {
+    "vertical": "Pet Shop",
+    "data_oferta": "04/11/2026",
     "produto": "ZENRELIA 8,5 - 30 COMPRIMIDOS ELANCO",
     "url": "https://produto.mercadolivre.com.br/MLB-4357714983",
     "preco_de": "R$290,50",
@@ -391,16 +505,25 @@ function render(){
   const items=ITEMS.filter(item=>(!category||item.vertical===category)&&(!query||[item.produto,item.vertical,item.tipo_cupom,item.desconto,item.codigo,item.informacoes_extras].join(' ').toLocaleLowerCase('pt-BR').includes(query)));
   document.getElementById('count').textContent=items.length;
   const list=document.getElementById('list');
-  if(!items.length){list.innerHTML='<div class="empty">Nenhuma oferta válida para hoje.</div>';return}
-  list.innerHTML=items.map(item=>{
-    const url=safeUrl(item.url);
-    const couponLabel=item.cupom||'';
-    const details=[detail('Cupom',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
-    const detailsBlock=details?`<div class="details">${details}</div>`:'';
-    const prices=`<div class="prices">${item.preco_de?`<div class="price"><span class="price-label">De</span><span class="price-value">${esc(item.preco_de)}</span></div>`:''}${item.preco_por?`<div class="price"><span class="price-label">Por</span><span class="price-value sale">${esc(item.preco_por)}</span></div>`:''}</div>`;
-    const extra=item.informacoes_extras?`<div class="extra">${esc(item.informacoes_extras)}</div>`:'';
-    const link=url?`<a class="link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`:'<span class="link disabled">Link indisponível</span>';
-    return `<article class="card"><div class="card-top"><span class="vertical">${esc(item.vertical)}</span><span class="offer-date">Oferta de ${esc(item.data_oferta)}</span></div><h2 class="product">${esc(item.produto)}</h2>${prices}${detailsBlock}${extra}${link}</article>`;
+  if(!items.length){list.innerHTML='<div class="empty">Nenhuma oferta completa e válida para hoje.</div>';return}
+  const grouped=new Map();
+  for(const item of items){
+    if(!grouped.has(item.vertical))grouped.set(item.vertical,[]);
+    grouped.get(item.vertical).push(item);
+  }
+  list.innerHTML=[...grouped.entries()].sort(([a],[b])=>a.localeCompare(b,'pt-BR')).map(([name,groupItems])=>{
+    const open=(!category||name===category)?' open':'';
+    const cards=groupItems.map(item=>{
+      const url=safeUrl(item.url);
+      const couponLabel=item.cupom||'';
+      const details=[detail('Cupom',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
+      const detailsBlock=details?`<div class="details">${details}</div>`:'';
+      const prices=`<div class="prices"><div class="price"><span class="price-label">De</span><span class="price-value">${esc(item.preco_de)}</span></div><div class="price"><span class="price-label">Por</span><span class="price-value sale">${esc(item.preco_por)}</span></div></div>`;
+      const extra=item.informacoes_extras?`<div class="extra">${esc(item.informacoes_extras)}</div>`:'';
+      const link=`<a class="link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`;
+      return `<article class="card"><div class="card-top"><span class="vertical">${esc(item.vertical)}</span><span class="offer-date">Oferta de ${esc(item.data_oferta)}</span></div><h2 class="product">${esc(item.produto)}</h2>${prices}${detailsBlock}${extra}${link}</article>`;
+    }).join('');
+    return `<section class="category-group"><details class="category-section"${open}><summary class="category-summary"><span class="category-heading"><span class="category-dot"></span>${esc(name)}</span><span class="category-count">${groupItems.length} ofertas <span class="category-chevron" aria-hidden="true">⌄</span></span></summary><div class="group-grid">${cards}</div></details></section>`;
   }).join('');
 }
 categorySelect.addEventListener('change',render);
