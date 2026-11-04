@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 SPREADSHEET_ID = "1ipuukzdhcKtTgqrK5MowmRXculVbYnLBSy1ULQEOZjY"
-SHEET_NAME = "Last Minute"
+SHEET_NAME = "Ofertas de hoje"
 DATA_START_ROW = 2
 OUTPUT_FILE = "last-minute.html"
 BRT = timezone(timedelta(hours=-3))
