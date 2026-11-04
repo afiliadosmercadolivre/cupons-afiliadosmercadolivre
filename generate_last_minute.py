@@ -13,7 +13,6 @@ SHEET_NAME = "Last Minute"
 DATA_START_ROW = 2
 OUTPUT_FILE = "last-minute.html"
 BRT = timezone(timedelta(hours=-3))
-SHEET_ERROR_VALUES = {"#N/A", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#NULL!", "#ERROR!", "#SPILL!", "#CALC!"}
 
 # Colunas (0-based a partir de A)
 COL = {
@@ -57,6 +56,9 @@ def today_brt():
     return datetime.now(timezone.utc).astimezone(BRT).date()
 
 
+SHEET_ERROR_VALUES = {"#N/A", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#NULL!", "#ERROR!", "#SPILL!", "#CALC!"}
+
+
 def safe_get(row, idx, default=""):
     try:
         value = row[idx]
@@ -69,8 +71,12 @@ def safe_get(row, idx, default=""):
 
 
 def is_valid_offer_url(value):
-    match = re.match(r"^https?://[^/\s]+(?:/[^\s]*)?$", str(value or "").strip(), re.IGNORECASE)
-    return bool(match)
+    from urllib.parse import urlsplit
+    try:
+        parts = urlsplit(str(value or "").strip())
+        return parts.scheme.lower() in {"http", "https"} and bool(parts.netloc) and not any(char.isspace() for char in parts.netloc)
+    except ValueError:
+        return False
 
 
 def parse_offer_date(value, today=None):
@@ -97,7 +103,7 @@ def parse_offer_date(value, today=None):
 
 
 def parse_rows(rows, today=None):
-    """Publica somente ofertas cuja Data Oferta coincide exatamente com hoje."""
+    """Publica ofertas de hoje com categoria, produto, URL e preços completos."""
     today = today or today_brt()
     items = []
     unparsed_dates = 0
@@ -163,6 +169,7 @@ def parse_rows(rows, today=None):
         print(f"[Last Minute] amostras_data={json.dumps(date_samples, ensure_ascii=False)}")
     return items
 
+
 HTML = """\
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -212,11 +219,6 @@ HTML = """\
     .category-dot{{width:9px;height:9px;border-radius:50%;background:var(--yellow);flex:none;box-shadow:0 0 12px rgba(255,230,0,.35)}}
     .category-count{{color:#aaa;font-size:11px;font-weight:700;white-space:nowrap}}
     .category-meta{{display:flex;align-items:center;gap:10px}}
-    .category-priority{{border-radius:50px;padding:5px 9px;font-size:9px;font-weight:900;letter-spacing:.07em}}
-    .priority-high{{background:var(--yellow);color:#050505}}
-    .priority-medium{{background:#493400;border:1px solid #725400;color:#ffe18a}}
-    .priority-low{{background:#292929;border:1px solid #414141;color:#ccc}}
-    .priority-other{{background:#202020;color:#888}}
     .category-chevron{{color:var(--yellow);font-size:17px;transition:transform .18s ease}}
     .category-section[open] .category-chevron{{transform:rotate(180deg)}}
     .group-grid{{padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}}
@@ -292,7 +294,6 @@ const CATEGORY_RANK = {{
 }};
 function categoryKey(value){{return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/\s*&\s*/g,'&').trim()}}
 function categoryRank(value){{return CATEGORY_RANK[categoryKey(value)]??99}}
-function priorityInfo(value){{const rank=categoryRank(value);if(rank<=4)return {{label:'HIGH',className:'priority-high'}};if(rank<=8)return {{label:'MEDIUM',className:'priority-medium'}};if(rank<=12)return {{label:'LOW',className:'priority-low'}};return {{label:'OUTRAS',className:'priority-other'}}}}
 function compareCategories(a,b){{return categoryRank(a)-categoryRank(b)||a.localeCompare(b,'pt-BR')}}
 const categories = [...new Set(ITEMS.map(item=>item.vertical).filter(Boolean))].sort(compareCategories);
 for(const category of categories){{const option=document.createElement('option');option.value=category;option.textContent=category;categorySelect.appendChild(option)}}
@@ -302,29 +303,24 @@ function detail(label,value,extraClass=''){{if(!value)return '';return `<div cla
 function render(){{
   const category=categorySelect.value;
   const query=document.getElementById('search').value.trim().toLocaleLowerCase('pt-BR');
-  const items=ITEMS.filter(item=>(!category||item.vertical===category)&&(!query||[item.produto,item.vertical,item.tipo_cupom,item.desconto,item.codigo,item.informacoes_extras].join(' ').toLocaleLowerCase('pt-BR').includes(query)));
+  const items=ITEMS.filter(item=>(!category||item.vertical===category)&&(!query||[item.produto,item.vertical,item.cupom,item.tipo_cupom,item.desconto,item.codigo,item.informacoes_extras].join(' ').toLocaleLowerCase('pt-BR').includes(query)));
   document.getElementById('count').textContent=items.length;
   const list=document.getElementById('list');
   if(!items.length){{list.innerHTML='<div class="empty">Nenhuma oferta completa e válida para hoje.</div>';return}}
   const grouped=new Map();
-  for(const item of items){{
-    if(!grouped.has(item.vertical))grouped.set(item.vertical,[]);
-    grouped.get(item.vertical).push(item);
-  }}
+  for(const item of items){{if(!grouped.has(item.vertical))grouped.set(item.vertical,[]);grouped.get(item.vertical).push(item)}}
   list.innerHTML=[...grouped.entries()].sort(([a],[b])=>compareCategories(a,b)).map(([name,groupItems])=>{{
     const open=(!category||name===category)?' open':'';
-    const priority=priorityInfo(name);
     const cards=groupItems.map(item=>{{
       const url=safeUrl(item.url);
-      const couponLabel=item.cupom||'';
-      const details=[detail('Cupom',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
+      const details=[detail('Cupom',item.cupom),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
       const detailsBlock=details?`<div class="details">${{details}}</div>`:'';
       const prices=`<div class="prices"><div class="price"><span class="price-label">De</span><span class="price-value">${{esc(item.preco_de)}}</span></div><div class="price"><span class="price-label">Por</span><span class="price-value sale">${{esc(item.preco_por)}}</span></div></div>`;
       const extra=item.informacoes_extras?`<div class="extra">${{esc(item.informacoes_extras)}}</div>`:'';
       const link=`<a class="link" href="${{esc(url)}}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`;
       return `<article class="card"><div class="card-top"><span class="vertical">${{esc(item.vertical)}}</span><span class="offer-date">Oferta de ${{esc(item.data_oferta)}}</span></div><h2 class="product">${{esc(item.produto)}}</h2>${{prices}}${{detailsBlock}}${{extra}}${{link}}</article>`;
     }}).join('');
-    return `<section class="category-group"><details class="category-section"${{open}}><summary class="category-summary"><span class="category-heading"><span class="category-dot"></span>${{esc(name)}}</span><span class="category-meta"><span class="category-priority ${{priority.className}}">${{priority.label}}</span><span class="category-count">${{groupItems.length}} ofertas</span><span class="category-chevron" aria-hidden="true">⌄</span></span></summary><div class="group-grid">${{cards}}</div></details></section>`;
+    return `<section class="category-group"><details class="category-section"${{open}}><summary class="category-summary"><span class="category-heading"><span class="category-dot"></span>${{esc(name)}}</span><span class="category-meta"><span class="category-count">${{groupItems.length}} ofertas</span><span class="category-chevron" aria-hidden="true">⌄</span></span></summary><div class="group-grid">${{cards}}</div></details></section>`;
   }}).join('');
 }}
 categorySelect.addEventListener('change',render);
