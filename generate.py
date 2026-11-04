@@ -323,8 +323,8 @@ HTML_TEMPLATE = """\
     .card-badge {{ background: var(--blue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 0; }}
     .card.hoje .card-badge {{ background: var(--red); }}
     .card.site .card-badge {{ background: var(--green); }}
-    .badge-n {{ font-size: 36px; font-weight: 900; color: var(--white); line-height: 1; font-family: 'Montserrat', sans-serif; }}
-    .card.hoje .badge-n, .card.site .badge-n {{ color: var(--white); }}
+    .badge-n {{ font-size: 36px; font-weight: 900; color: #FFFFFF !important; line-height: 1; font-family: 'Montserrat', sans-serif; }}
+    .card.hoje .badge-n, .card.site .badge-n {{ color: #FFFFFF !important; }}
     .badge-unit {{ font-size: 13px; font-weight: 800; color: rgba(255,255,255,.8); margin-top: -2px; }}
     .card.hoje .badge-unit, .card.site .badge-unit {{ color: rgba(255,255,255,.7); }}
 
@@ -528,7 +528,7 @@ function renderCard(c){{
   const badgeUnit=c.is_reais?'R$ OFF':'% OFF';
   return`<div class="card ${{cls}}">
   <div class="card-badge">
-    <div class="badge-n">${{c.discount_num}}</div>
+    <div class="badge-n" style="color:#FFFFFF !important">${{c.discount_num}}</div>
     <div class="badge-unit">${{badgeUnit}}</div>
   </div>
   <div class="card-body">
