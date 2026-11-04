@@ -19,7 +19,6 @@ COL = {
     "mes": 0,
     "vertical": 1,
     "data_oferta": 2,
-    "periodo_preenchimento": 3,
     "produto": 4,
     "url": 5,
     "preco_de": 6,
@@ -125,7 +124,6 @@ def parse_rows(rows, today=None):
         items.append({
             "vertical": safe_get(row, COL["vertical"]) or "Outros",
             "data_oferta": offer_date.strftime("%d/%m/%Y"),
-            "periodo_preenchimento": safe_get(row, COL["periodo_preenchimento"]),
             "produto": product,
             "url": safe_get(row, COL["url"]),
             "preco_de": safe_get(row, COL["preco_de"]),
@@ -188,21 +186,22 @@ HTML = """\
     input{{margin-left:auto;width:min(320px,100%)}}
     input::placeholder{{color:#888}}
     .list{{max-width:1120px;margin:24px auto;padding:0 24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px}}
-    .card{{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 26px rgba(0,0,0,.25)}}
+    .card{{background:linear-gradient(155deg,#191919 0%,#111 100%);border:1px solid #353535;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}}
     .card-top,.prices,.meta-row{{display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
-    .vertical,.offer-date{{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;border-radius:50px;padding:6px 10px}}
-    .vertical{{background:#272300;color:var(--yellow)}}
-    .offer-date{{background:#242424;color:#ddd}}
-    .product{{font-size:20px;line-height:1.2;font-weight:900}}
-    .prices{{gap:18px}}
-    .price{{display:flex;flex-direction:column;gap:3px}}
-    .price-label{{font-size:9px;color:#999;font-weight:800;text-transform:uppercase;letter-spacing:.1em}}
-    .price-value{{font-size:15px;font-weight:800}}
-    .price-value.sale{{color:var(--yellow);font-size:22px}}
-    .details{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
-    .detail{{background:#1d1d1d;border:1px solid #2c2c2c;border-radius:10px;padding:10px 12px;min-width:0}}
-    .detail-label{{font-size:9px;color:#999;font-weight:800;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:4px}}
-    .detail-value{{font-size:12px;color:#eee;font-weight:700;overflow-wrap:anywhere}}
+    .card-top{{justify-content:space-between;align-items:flex-start}}
+    .vertical,.offer-date{{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;border-radius:50px;padding:7px 11px}}
+    .vertical{{background:#272300;color:var(--yellow);max-width:70%;line-height:1.35}}
+    .offer-date{{background:#252525;color:#ddd;white-space:nowrap}}
+    .product{{font-size:19px;line-height:1.4;font-weight:800;overflow-wrap:anywhere}}
+    .prices{{gap:20px;align-items:flex-end;background:#101010;border:1px solid #292929;border-radius:12px;padding:13px 15px}}
+    .price{{display:flex;flex-direction:column;gap:5px}}
+    .price-label{{font-size:10px;color:#999;font-weight:800;text-transform:uppercase;letter-spacing:.08em}}
+    .price-value{{font-size:14px;color:#aaa;font-weight:700;text-decoration:line-through}}
+    .price-value.sale{{color:var(--yellow);font-size:24px;line-height:1.1;text-decoration:none}}
+    .details{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}}
+    .detail{{background:#1d1d1d;border:1px solid #303030;border-radius:11px;padding:11px 13px;min-width:0}}
+    .detail-label{{font-size:10px;color:#aaa;font-weight:800;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}}
+    .detail-value{{display:block;font-size:13px;line-height:1.4;color:#f5f5f5;font-weight:700;overflow-wrap:anywhere}}
     .extra{{color:#bbb;font-size:12px;line-height:1.5;background:#1b1b1b;border-left:3px solid var(--yellow);padding:10px 12px;border-radius:0 8px 8px 0}}
     .code{{font-family:monospace;color:var(--yellow);font-size:14px;letter-spacing:.04em}}
     .link{{margin-top:auto;display:block;text-align:center;background:var(--yellow);color:#050505;text-decoration:none;font-weight:900;font-size:13px;padding:12px 16px;border-radius:50px}}
@@ -256,12 +255,13 @@ function render(){{
   if(!items.length){{list.innerHTML='<div class="empty">Nenhuma oferta válida para hoje.</div>';return}}
   list.innerHTML=items.map(item=>{{
     const url=safeUrl(item.url);
-    const couponLabel=item.cupom?`Cupom: ${{item.cupom}}`:'';
-    const details=[detail('Período de preenchimento',item.periodo_preenchimento),detail('Cupom?',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].join('');
+    const couponLabel=item.cupom||'';
+    const details=[detail('Cupom',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
+    const detailsBlock=details?`<div class="details">${{details}}</div>`:'';
     const prices=`<div class="prices">${{item.preco_de?`<div class="price"><span class="price-label">De</span><span class="price-value">${{esc(item.preco_de)}}</span></div>`:''}}${{item.preco_por?`<div class="price"><span class="price-label">Por</span><span class="price-value sale">${{esc(item.preco_por)}}</span></div>`:''}}</div>`;
     const extra=item.informacoes_extras?`<div class="extra">${{esc(item.informacoes_extras)}}</div>`:'';
     const link=url?`<a class="link" href="${{esc(url)}}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`:'<span class="link disabled">Link indisponível</span>';
-    return `<article class="card"><div class="card-top"><span class="vertical">${{esc(item.vertical)}}</span><span class="offer-date">Oferta de ${{esc(item.data_oferta)}}</span></div><h2 class="product">${{esc(item.produto)}}</h2>${{prices}}<div class="details">${{details}}</div>${{extra}}${{link}}</article>`;
+    return `<article class="card"><div class="card-top"><span class="vertical">${{esc(item.vertical)}}</span><span class="offer-date">Oferta de ${{esc(item.data_oferta)}}</span></div><h2 class="product">${{esc(item.produto)}}</h2>${{prices}}${{detailsBlock}}${{extra}}${{link}}</article>`;
   }}).join('');
 }}
 categorySelect.addEventListener('change',render);
