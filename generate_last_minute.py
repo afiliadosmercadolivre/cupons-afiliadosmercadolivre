@@ -92,13 +92,34 @@ def parse_rows(rows, today=None):
     """Publica somente ofertas cuja Data Oferta coincide exatamente com hoje."""
     today = today or today_brt()
     items = []
-    for row in rows:
-        offer_date = parse_offer_date(safe_get(row, COL["data_oferta"]), today)
+    unparsed_dates = 0
+    other_dates = 0
+    today_date_matches = 0
+    missing_products = 0
+    date_samples = []
+
+    for offset, row in enumerate(rows):
+        raw_date = safe_get(row, COL["data_oferta"])
+        offer_date = parse_offer_date(raw_date, today)
+        if len(date_samples) < 8:
+            date_samples.append({
+                "sheet_row": DATA_START_ROW + offset,
+                "date_raw": raw_date,
+                "date_parsed": offer_date.isoformat() if offer_date else None,
+                "columns_read": len(row),
+            })
+
         if offer_date != today:
+            if offer_date is None:
+                unparsed_dates += 1
+            else:
+                other_dates += 1
             continue
 
+        today_date_matches += 1
         product = safe_get(row, COL["produto"])
         if not product:
+            missing_products += 1
             continue
 
         items.append({
@@ -117,8 +138,14 @@ def parse_rows(rows, today=None):
         })
 
     items.sort(key=lambda item: (item["vertical"].casefold(), item["produto"].casefold()))
+    print(
+        f"[Last Minute] hoje={today.isoformat()} linhas_lidas={len(rows)} "
+        f"datas_de_hoje={today_date_matches} datas_invalidas={unparsed_dates} "
+        f"outras_datas={other_dates} produtos_vazios={missing_products} itens_publicados={len(items)}"
+    )
+    if not items:
+        print(f"[Last Minute] amostras_data={json.dumps(date_samples, ensure_ascii=False)}")
     return items
-
 
 HTML = """\
 <!DOCTYPE html>
