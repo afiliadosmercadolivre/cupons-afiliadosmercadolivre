@@ -44,7 +44,7 @@ def get_service():
 
 
 def fetch_rows(service):
-    range_name = f"'{SHEET_NAME}'!A{DATA_START_ROW}:M5000"
+    range_name = f"'{SHEET_NAME}'!A{DATA_START_ROW}:M"
     result = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
         range=range_name,
