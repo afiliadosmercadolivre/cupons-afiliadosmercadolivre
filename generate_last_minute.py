@@ -211,6 +211,12 @@ HTML = """\
     .category-heading{{display:flex;align-items:center;gap:10px;min-width:0;font-size:15px;font-weight:900}}
     .category-dot{{width:9px;height:9px;border-radius:50%;background:var(--yellow);flex:none;box-shadow:0 0 12px rgba(255,230,0,.35)}}
     .category-count{{color:#aaa;font-size:11px;font-weight:700;white-space:nowrap}}
+    .category-meta{{display:flex;align-items:center;gap:10px}}
+    .category-priority{{border-radius:50px;padding:5px 9px;font-size:9px;font-weight:900;letter-spacing:.07em}}
+    .priority-high{{background:var(--yellow);color:#050505}}
+    .priority-medium{{background:#493400;border:1px solid #725400;color:#ffe18a}}
+    .priority-low{{background:#292929;border:1px solid #414141;color:#ccc}}
+    .priority-other{{background:#202020;color:#888}}
     .category-chevron{{color:var(--yellow);font-size:17px;transition:transform .18s ease}}
     .category-section[open] .category-chevron{{transform:rotate(180deg)}}
     .group-grid{{padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}}
@@ -269,7 +275,26 @@ const ITEMS = {items_json};
 const today = new Intl.DateTimeFormat('pt-BR',{{timeZone:'America/Sao_Paulo',day:'2-digit',month:'2-digit',year:'numeric'}}).format(new Date());
 document.getElementById('today-label').textContent = `${{today}}`;
 const categorySelect = document.getElementById('category');
-const categories = [...new Set(ITEMS.map(item=>item.vertical).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+const CATEGORY_RANK = {{
+  fashion:0, moda:0,
+  beauty:1, beleza:1,
+  he:2, 'moveis&decoracao':2, 'moveis e decoracao':2,
+  tech:3, tecnologia:3,
+  'f&h':4, 'alimentos&bebidas':4, 'alimentos e bebidas':4,
+  'c&i':5, 'casa&construcao':5, 'casa e construcao':5,
+  't&b':6, 'brinquedos&bebes':6, 'brinquedos e bebes':6,
+  health:7, saude:7,
+  vpa:8, 'veiculos&pecas&acessorios':8, 'veiculos e pecas e acessorios':8, 'auto&moto':8,
+  sports:9, esportes:9,
+  cpg:10, 'cpg(bens de consumo)':10,
+  entertainment:11, entretenimento:11,
+  pets:12, 'pet shop':12
+}};
+function categoryKey(value){{return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/\s*&\s*/g,'&').trim()}}
+function categoryRank(value){{return CATEGORY_RANK[categoryKey(value)]??99}}
+function priorityInfo(value){{const rank=categoryRank(value);if(rank<=4)return {{label:'HIGH',className:'priority-high'}};if(rank<=8)return {{label:'MEDIUM',className:'priority-medium'}};if(rank<=12)return {{label:'LOW',className:'priority-low'}};return {{label:'OUTRAS',className:'priority-other'}}}}
+function compareCategories(a,b){{return categoryRank(a)-categoryRank(b)||a.localeCompare(b,'pt-BR')}}
+const categories = [...new Set(ITEMS.map(item=>item.vertical).filter(Boolean))].sort(compareCategories);
 for(const category of categories){{const option=document.createElement('option');option.value=category;option.textContent=category;categorySelect.appendChild(option)}}
 function esc(value){{return String(value??'').replace(/[&<>"']/g,char=>({{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}}[char]))}}
 function safeUrl(value){{try{{const url=new URL(String(value||''));return ['http:','https:'].includes(url.protocol)?url.href:''}}catch{{return ''}}}}
@@ -286,8 +311,9 @@ function render(){{
     if(!grouped.has(item.vertical))grouped.set(item.vertical,[]);
     grouped.get(item.vertical).push(item);
   }}
-  list.innerHTML=[...grouped.entries()].sort(([a],[b])=>a.localeCompare(b,'pt-BR')).map(([name,groupItems])=>{{
+  list.innerHTML=[...grouped.entries()].sort(([a],[b])=>compareCategories(a,b)).map(([name,groupItems])=>{{
     const open=(!category||name===category)?' open':'';
+    const priority=priorityInfo(name);
     const cards=groupItems.map(item=>{{
       const url=safeUrl(item.url);
       const couponLabel=item.cupom||'';
@@ -298,7 +324,7 @@ function render(){{
       const link=`<a class="link" href="${{esc(url)}}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`;
       return `<article class="card"><div class="card-top"><span class="vertical">${{esc(item.vertical)}}</span><span class="offer-date">Oferta de ${{esc(item.data_oferta)}}</span></div><h2 class="product">${{esc(item.produto)}}</h2>${{prices}}${{detailsBlock}}${{extra}}${{link}}</article>`;
     }}).join('');
-    return `<section class="category-group"><details class="category-section"${{open}}><summary class="category-summary"><span class="category-heading"><span class="category-dot"></span>${{esc(name)}}</span><span class="category-count">${{groupItems.length}} ofertas <span class="category-chevron" aria-hidden="true">⌄</span></span></summary><div class="group-grid">${{cards}}</div></details></section>`;
+    return `<section class="category-group"><details class="category-section"${{open}}><summary class="category-summary"><span class="category-heading"><span class="category-dot"></span>${{esc(name)}}</span><span class="category-meta"><span class="category-priority ${{priority.className}}">${{priority.label}}</span><span class="category-count">${{groupItems.length}} ofertas</span><span class="category-chevron" aria-hidden="true">⌄</span></span></summary><div class="group-grid">${{cards}}</div></details></section>`;
   }}).join('');
 }}
 categorySelect.addEventListener('change',render);
