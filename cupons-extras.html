@@ -50,7 +50,7 @@
     .card.ok{border-left:5px solid var(--teal)}
     .card-badge{background:var(--teal);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0}
     .card.hoje .card-badge{background:var(--red)}
-    .badge-n{font-size:32px;font-weight:900;color:var(--white);line-height:1;font-family:'Montserrat',sans-serif}
+    .badge-n{font-size:32px;font-weight:900;color:#FFFFFF;line-height:1;font-family:'Montserrat',sans-serif}
     .badge-unit{font-size:11px;font-weight:800;color:rgba(255,255,255,.75);margin-top:2px}
     .card-body{padding:16px 20px;display:flex;flex-direction:column;gap:10px;min-width:0}
     .card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -132,7 +132,7 @@
     <a class="hdr-link active" href="cupons-extras.html">Cupons Extras</a>
     <a class="hdr-link" href="ofertas-diarias.html">Ofertas de hoje</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 04/11/2026 17:15</span>
+  <span class="hdr-ts">Atualizado em 04/11/2026 17:28</span>
 </header>
 <div class="hero">
   <div class="hero-inner">
@@ -331,6 +331,25 @@ const ITEMS = [
     "days_left": 26
   },
   {
+    "vertical": "Tech",
+    "categoria": "Tecnologia",
+    "data_inicial": "22/07/2026",
+    "data_final": "30/11/2026",
+    "horario_inicio": "13:30",
+    "tipo_cupom": "Código",
+    "id_cupom": "13994974",
+    "nome_cupom": "SAMSUNG15OFF",
+    "mecanica": "%",
+    "desconto": "15%",
+    "discount_num": 15,
+    "is_reais": false,
+    "asp_minimo": "700",
+    "desconto_max": "111",
+    "url": "https://lista.mercadolivre.com.br/_Container_15-off-afiliados-e-caixinha-1p",
+    "obs": "Cupom de 15% OFF nas compras acima de R$700",
+    "days_left": 26
+  },
+  {
     "vertical": "Beauty",
     "categoria": "Beleza",
     "data_inicial": "01/11/2026",
@@ -435,32 +454,13 @@ const ITEMS = [
     "id_cupom": "13995026",
     "nome_cupom": "SAMSUNG10OFF",
     "mecanica": "%",
-    "desconto": "0,10",
-    "discount_num": 0,
+    "desconto": "10%",
+    "discount_num": 10,
     "is_reais": false,
     "asp_minimo": "900",
     "desconto_max": "200",
     "url": "https://lista.mercadolivre.com.br/_Container_10-off-afiliados-caixinha-1p",
     "obs": "Cupom de 0,1 OFF nas compras acima de R$900",
-    "days_left": 26
-  },
-  {
-    "vertical": "Tech",
-    "categoria": "Tecnologia",
-    "data_inicial": "22/07/2026",
-    "data_final": "30/11/2026",
-    "horario_inicio": "13:30",
-    "tipo_cupom": "Código",
-    "id_cupom": "13994974",
-    "nome_cupom": "SAMSUNG15OFF",
-    "mecanica": "%",
-    "desconto": "0,15",
-    "discount_num": 0,
-    "is_reais": false,
-    "asp_minimo": "700",
-    "desconto_max": "111",
-    "url": "https://lista.mercadolivre.com.br/_Container_15-off-afiliados-e-caixinha-1p",
-    "obs": "Cupom de 15% OFF nas compras acima de R$700",
     "days_left": 26
   },
   {
@@ -642,9 +642,12 @@ function matches(c){
 function renderCard(c){
   const exp=expInfo(c.data_final),cls=cardCls(c);
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${exp.l}</span>`:'';
-  const btnHTML=c.url?`<a class="ver-btn" href="${c.url}" target="_blank" rel="noopener">Ver cupom</a>`:`<span class="ver-btn no-url">Sem link</span>`;
+  const nomeRaw=(c.nome_cupom||'').trim();
+  const hasCouponName=!!nomeRaw&&!/^\d+$/.test(nomeRaw);
+  const nome=hasCouponName?nomeRaw:'Aplicado direto na página do produto';
+  const btnLabel=hasCouponName?'Ver cupom':'Ver oferta';
+  const btnHTML=c.url?`<a class="ver-btn" href="${c.url}" target="_blank" rel="noopener">${btnLabel}</a>`:`<span class="ver-btn no-url">Sem link</span>`;
   const badgeUnit=c.is_reais?'R$ OFF':'% OFF';
-  const nome=c.nome_cupom||c.id_cupom||'Cupom';
   const mecanicaHTML=c.mecanica?`<div class="card-mecanica"><strong>Mecânica:</strong> ${c.mecanica}</div>`:'';
   const obsHTML=c.obs?`<div class="card-obs">${c.obs}</div>`:'';
   return`<div class="card ${cls}">
