@@ -199,6 +199,7 @@ HTML = """\
       --yellow:#FFE600;--yellow-dark:#D6C200;--blue:#080808;--blue-mid:#151515;
       --white:#171717;--bg:#050505;--text:#F5F5F5;--muted:#B0B0B0;--border:#343434;
     }}
+    .hero-left h1{{color:#FFFFFF}}
     .hdr{{background:#060606;border-bottom:1px solid #292929}}
     .hdr-pill{{background:var(--yellow);color:#050505}}
     .hdr-sub,.hdr-ts{{color:#B7B7B7;opacity:1}}
