@@ -3,6 +3,7 @@ generate.py — v3 (Brand ML)
 """
 
 import json, os, re
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, date, timezone, timedelta
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -128,6 +129,38 @@ def extract_container(url_raw):
         return raw, raw  # URL sem padrão _Container_, usa a própria URL como nome
     return "", raw  # Nome de loja sem URL — sem link, mas com nome para exibir
 
+def normalize_discount_value(val):
+    """Interpreta percentuais acima de 100% como valor absoluto em reais."""
+    raw = str(val or "").strip()
+    match = re.fullmatch(r"(?:R\$\s*)?([+-]?[\d.,]+)\s*%", raw, re.IGNORECASE)
+    if not match:
+        return raw
+
+    number = match.group(1)
+    if "," in number and "." in number:
+        if number.rfind(",") > number.rfind("."):
+            number = number.replace(".", "").replace(",", ".")
+        else:
+            number = number.replace(",", "")
+    elif "," in number:
+        number = number.replace(".", "").replace(",", ".")
+    elif number.count(".") > 1:
+        number = number.replace(".", "")
+    elif "." in number and len(number.rsplit(".", 1)[1]) != 2:
+        number = number.replace(".", "")
+
+    try:
+        percent = Decimal(number)
+    except InvalidOperation:
+        return raw
+    if percent <= 100:
+        return raw
+
+    amount = percent / Decimal("100")
+    formatted = format(amount, ",.2f").replace(",", "_").replace(".", ",").replace("_", ".")
+    return f"R$ {formatted}"
+
+
 def discount_num(val):
     """Extrai o número, preservando se é % ou R$."""
     try:
@@ -188,7 +221,7 @@ def parse_coupons(rows):
         if not is_started(dia_inicio, hora_inicio): continue
         container_url, container_name = extract_container(safe_get(row, COL["containers"]))
         dl = days_left(dia_fim)
-        valor_desconto_raw = safe_get(row, COL["valor_desconto"])
+        valor_desconto_raw = normalize_discount_value(safe_get(row, COL["valor_desconto"]))
         dn = discount_num(valor_desconto_raw)
         eh_reais = is_reais(valor_desconto_raw)
         coupons.append({
@@ -290,9 +323,9 @@ HTML_TEMPLATE = """\
     .card-badge {{ background: var(--blue); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 0; }}
     .card.hoje .card-badge {{ background: var(--red); }}
     .card.site .card-badge {{ background: var(--green); }}
-    .badge-n {{ font-size: 36px; font-weight: 900; color: var(--yellow); line-height: 1; font-family: 'Montserrat', sans-serif; }}
+    .badge-n {{ font-size: 36px; font-weight: 900; color: var(--white); line-height: 1; font-family: 'Montserrat', sans-serif; }}
     .card.hoje .badge-n, .card.site .badge-n {{ color: var(--white); }}
-    .badge-unit {{ font-size: 13px; font-weight: 800; color: rgba(255,230,0,.7); margin-top: -2px; }}
+    .badge-unit {{ font-size: 13px; font-weight: 800; color: rgba(255,255,255,.8); margin-top: -2px; }}
     .card.hoje .badge-unit, .card.site .badge-unit {{ color: rgba(255,255,255,.7); }}
 
     /* body */
