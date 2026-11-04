@@ -300,7 +300,7 @@ HTML = """\
     <a class="hdr-link" href="index.html">Cupons</a>
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
     <a class="hdr-link active" href="cupons-extras.html">Cupons Extras</a>
-    <a class="hdr-link" href="last-minute.html">Ofertas de hoje</a>
+    <a class="hdr-link" href="ofertas-diarias.html">Ofertas de hoje</a>
   </nav>
   <span class="hdr-ts">Atualizado em {generated_at}</span>
 </header>
