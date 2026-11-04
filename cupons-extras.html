@@ -83,6 +83,40 @@
     .disclaimer p{font-size:12px;font-weight:600;color:#888;background:var(--white);border:1.5px solid var(--border);border-radius:8px;padding:12px 16px;line-height:1.6}
     .footer{text-align:center;padding:32px 24px;font-size:12px;font-weight:600;color:var(--muted);border-top:1px solid var(--border);margin-top:16px}
     @media(max-width:640px){.card{grid-template-columns:80px 1fr}.card-action{display:none}.search{width:130px}.hdr-nav{display:none}}
+  
+
+    @media(max-width:640px){
+      .hdr{height:auto;min-height:64px;padding:10px 16px;flex-wrap:wrap}
+      .hdr-nav{display:flex;order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+      .hdr-link{white-space:nowrap}
+      .hdr-ts{margin-left:auto}
+    }
+    /* Tema sazonal 11.11 / Black Friday */
+    :root {
+      --yellow:#FFE600;--yellow-dark:#D6C200;--blue:#080808;--blue-mid:#151515;
+      --white:#171717;--bg:#050505;--text:#F5F5F5;--muted:#B0B0B0;--border:#343434;
+    }
+    .hdr{background:#060606;border-bottom:1px solid #292929}
+    .hdr-pill{background:var(--yellow);color:#050505}
+    .hdr-sub,.hdr-ts{color:#B7B7B7;opacity:1}
+    .hdr-link{color:#DDD;border-color:#4A4A4A}
+    .hdr-link.active{background:var(--yellow);border-color:var(--yellow);color:#050505}
+    .hero{background:#0A0A0A}
+    .toolbar{background:#111;border-color:#292929}
+    .search{background:#181818;color:var(--text)}
+    .search::placeholder{color:#888}
+    .card{background:#151515}
+    .card-action{border-color:#333}
+    .empty{background:#141414}
+    .disclaimer p{background:#141414;color:#B8B8B8}
+    .footer{border-color:#292929}
+
+    .pill-cat,.expiry-pill.ok{background:#123036;color:#65D9E8}
+    .pill-vert{background:#29233A;color:#D2B5FF}
+    .pill-expira,.expiry-pill.hoje{background:#3A1D26;color:#FF7891}
+    .pill-breve,.expiry-pill.breve{background:#3A281A;color:#FF9A55}
+    .card-mecanica{background:#202020}
+
   </style>
 </head>
 <body>
@@ -95,8 +129,9 @@
     <a class="hdr-link" href="index.html">Cupons</a>
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
     <a class="hdr-link active" href="cupons-extras.html">Cupons Extras</a>
+    <a class="hdr-link" href="last-minute.html">Last Minute</a>
   </nav>
-  <span class="hdr-ts">Atualizado em 04/11/2026 06:57</span>
+  <span class="hdr-ts">Atualizado em 04/11/2026 09:41</span>
 </header>
 <div class="hero">
   <div class="hero-inner">
