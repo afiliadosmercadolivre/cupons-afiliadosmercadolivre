@@ -11,7 +11,8 @@ from googleapiclient.discovery import build
 SPREADSHEET_ID = "1ipuukzdhcKtTgqrK5MowmRXculVbYnLBSy1ULQEOZjY"
 SHEET_NAME = "Last Minute"
 DATA_START_ROW = 2
-OUTPUT_FILE = "last-minute.html"
+OUTPUT_FILE = "ofertas-diarias.html"
+LEGACY_OUTPUT_FILE = "last-minute.html"
 BRT = timezone(timedelta(hours=-3))
 
 # Colunas (0-based a partir de A)
@@ -250,12 +251,12 @@ HTML = """\
 </head>
 <body>
 <header class="hdr">
-  <a class="brand" href="last-minute.html"><span class="brand-pill">OFERTAS DE HOJE</span><span class="brand-sub">Black Friday • Afiliados</span></a>
+  <a class="brand" href="ofertas-diarias.html"><span class="brand-pill">OFERTAS DE HOJE</span><span class="brand-sub">Black Friday • Afiliados</span></a>
   <nav class="nav">
     <a href="index.html">Cupons</a>
     <a href="ganhos-extras.html">Ganhos Extras</a>
     <a href="cupons-extras.html">Cupons Extras</a>
-    <a class="active" href="last-minute.html">Ofertas de hoje</a>
+    <a class="active" href="ofertas-diarias.html">Ofertas de hoje</a>
   </nav>
   <span class="updated">Atualizado em {generated_at}</span>
 </header>
@@ -344,6 +345,12 @@ def main():
     )
     with open(OUTPUT_FILE, "w", encoding="utf-8") as output:
         output.write(html)
+    legacy_redirect = """<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta http-equiv="refresh" content="0;url=ofertas-diarias.html"><link rel="canonical" href="ofertas-diarias.html"><title>Ofertas de hoje</title></head>
+<body><p>Esta página mudou. <a href="ofertas-diarias.html">Acesse Ofertas de hoje</a>.</p></body></html>
+"""
+    with open(LEGACY_OUTPUT_FILE, "w", encoding="utf-8") as output:
+        output.write(legacy_redirect)
     print(f"✅ {OUTPUT_FILE} gerado com {len(items)} ofertas válidas para {now:%d/%m/%Y}")
 
 
