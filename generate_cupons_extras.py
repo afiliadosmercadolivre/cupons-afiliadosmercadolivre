@@ -3,6 +3,7 @@ generate_cupons_extras.py — Cupons Extras Afiliados ML
 """
 
 import json, os, re
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, date, timezone, timedelta
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -93,6 +94,36 @@ def fmt_date(s):
     d = parse_date(s)
     return d.strftime("%d/%m/%Y") if d else str(s)
 
+def normalize_discount(val):
+    """Corrige descontos percentuais armazenados como fração decimal."""
+    raw = str(val or "").strip()
+    if not raw or is_reais(raw):
+        return raw
+
+    has_percent = "%" in raw
+    number = re.sub(r"[^\d.,+-]", "", raw.replace("%", ""))
+    if not number:
+        return raw
+    if "," in number and "." in number:
+        if number.rfind(",") > number.rfind("."):
+            number = number.replace(".", "").replace(",", ".")
+        else:
+            number = number.replace(",", "")
+    elif "," in number:
+        number = number.replace(".", "").replace(",", ".")
+
+    try:
+        amount = Decimal(number)
+    except InvalidOperation:
+        return raw
+
+    # Sheets pode entregar 0,10 para representar 10% quando a célula não
+    # está formatada como percentual.
+    if not has_percent and Decimal("0") < amount <= Decimal("1"):
+        return f"{format(amount * Decimal('100'), 'f').rstrip('0').rstrip('.')}%"
+    return raw
+
+
 def discount_num(val):
     try:
         return int(re.sub(r"[^\d]", "", val.split(",")[0]))
@@ -116,7 +147,7 @@ def parse_rows(rows):
         id_cupom      = safe_get(row, COL["id_cupom"])
         nome_cupom    = safe_get(row, COL["nome_cupom"])
         mecanica      = safe_get(row, COL["mecanica"])
-        desconto      = safe_get(row, COL["desconto_cupom"])
+        desconto      = normalize_discount(safe_get(row, COL["desconto_cupom"]))
         asp_minimo    = safe_get(row, COL["asp_minimo"])
         desconto_max  = safe_get(row, COL["desconto_max"])
         url           = safe_get(row, COL["url"])
@@ -220,7 +251,7 @@ HTML = """\
     .card.ok{{border-left:5px solid var(--teal)}}
     .card-badge{{background:var(--teal);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0}}
     .card.hoje .card-badge{{background:var(--red)}}
-    .badge-n{{font-size:32px;font-weight:900;color:var(--white);line-height:1;font-family:'Montserrat',sans-serif}}
+    .badge-n{{font-size:32px;font-weight:900;color:#FFFFFF;line-height:1;font-family:'Montserrat',sans-serif}}
     .badge-unit{{font-size:11px;font-weight:800;color:rgba(255,255,255,.75);margin-top:2px}}
     .card-body{{padding:16px 20px;display:flex;flex-direction:column;gap:10px;min-width:0}}
     .card-top{{display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
@@ -355,9 +386,12 @@ function matches(c){{
 function renderCard(c){{
   const exp=expInfo(c.data_final),cls=cardCls(c);
   const expTag=cls==='hoje'||cls==='breve'?`<span class="pill-tag pill-expira">${{exp.l}}</span>`:'';
-  const btnHTML=c.url?`<a class="ver-btn" href="${{c.url}}" target="_blank" rel="noopener">Ver cupom</a>`:`<span class="ver-btn no-url">Sem link</span>`;
+  const nomeRaw=(c.nome_cupom||'').trim();
+  const hasCouponName=!!nomeRaw&&!/^\d+$/.test(nomeRaw);
+  const nome=hasCouponName?nomeRaw:'Aplicado direto na página do produto';
+  const btnLabel=hasCouponName?'Ver cupom':'Ver oferta';
+  const btnHTML=c.url?`<a class="ver-btn" href="${{c.url}}" target="_blank" rel="noopener">${{btnLabel}}</a>`:`<span class="ver-btn no-url">Sem link</span>`;
   const badgeUnit=c.is_reais?'R$ OFF':'% OFF';
-  const nome=c.nome_cupom||c.id_cupom||'Cupom';
   const mecanicaHTML=c.mecanica?`<div class="card-mecanica"><strong>Mecânica:</strong> ${{c.mecanica}}</div>`:'';
   const obsHTML=c.obs?`<div class="card-obs">${{c.obs}}</div>`:'';
   return`<div class="card ${{cls}}">
