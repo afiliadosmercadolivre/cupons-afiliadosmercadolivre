@@ -345,6 +345,44 @@ HTML_TEMPLATE = """\
       .search {{ width: 130px; }}
       .badge-n {{ font-size: 26px; }}
     }}
+  
+
+    @media(max-width:640px){{
+      .hdr{{height:auto;min-height:64px;padding:10px 16px;flex-wrap:wrap}}
+      .hdr-nav{{display:flex;order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}}
+      .hdr-link{{white-space:nowrap}}
+      .hdr-ts{{margin-left:auto}}
+    }}
+    /* Tema sazonal 11.11 / Black Friday */
+    :root {{
+      --yellow:#FFE600;--yellow-dark:#D6C200;--blue:#080808;--blue-mid:#151515;
+      --white:#171717;--bg:#050505;--text:#F5F5F5;--muted:#B0B0B0;--border:#343434;
+    }}
+    .hdr{{background:#060606;border-bottom:1px solid #292929}}
+    .hdr-pill{{background:var(--yellow);color:#050505}}
+    .hdr-sub,.hdr-ts{{color:#B7B7B7;opacity:1}}
+    .hdr-link{{color:#DDD;border-color:#4A4A4A}}
+    .hdr-link.active{{background:var(--yellow);border-color:var(--yellow);color:#050505}}
+    .hero{{background:#0A0A0A}}
+    .toolbar{{background:#111;border-color:#292929}}
+    .search{{background:#181818;color:var(--text)}}
+    .search::placeholder{{color:#888}}
+    .card{{background:#151515}}
+    .card-action{{border-color:#333}}
+    .empty{{background:#141414}}
+    .disclaimer p{{background:#141414;color:#B8B8B8}}
+    .footer{{border-color:#292929}}
+
+    .pill-site,.site-pill{{background:#153322;color:#62E69A}}
+    .pill-cat{{background:#292929;color:#F0F0F0}}
+    .pill-hot{{background:#3A281A;color:#FF9A55}}
+    .pill-expira{{background:#3A1D26;color:#FF7891}}
+    .expiry-pill.ok{{background:#153322;color:#62E69A}}
+    .expiry-pill.hoje{{background:#3A1D26;color:#FF7891}}
+    .expiry-pill.breve{{background:#3A281A;color:#FF9A55}}
+    .container-link{{background:#252200;border-color:#5A5100;color:#FFE600}}
+    .container-link:hover{{background:#383200}}
+
   </style>
 </head>
 <body>
@@ -358,6 +396,7 @@ HTML_TEMPLATE = """\
     <a class="hdr-link active" href="index.html">Cupons</a>
     <a class="hdr-link" href="ganhos-extras.html">Ganhos Extras</a>
     <a class="hdr-link" href="cupons-extras.html">Cupons Extras</a>
+    <a class="hdr-link" href="last-minute.html">Last Minute</a>
   </nav>
   <span class="hdr-ts">Atualizado em {generated_at}</span>
 </header>
