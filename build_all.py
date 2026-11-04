@@ -57,12 +57,12 @@ PAGES = {
     "extras": {"script": f"{SCRIPT_PREFIX}generate_cupons_extras.py", "output": "cupons-extras.html", "var": "ITEMS",
                "required": ["categoria", "data_final", "desconto"],
                "date_field": "data_final"},
-    "last-minute": {"script": f"{SCRIPT_PREFIX}generate_last_minute.py", "output": "last-minute.html", "var": "ITEMS",
-                    "required": ["produto", "vertical", "data_oferta"],
+    "last-minute": {"script": f"{SCRIPT_PREFIX}generate_last_minute.py", "output": "ofertas-diarias.html", "var": "ITEMS",
+                    "required": ["produto", "vertical", "data_oferta", "url", "preco_de", "preco_por"],
                     "date_field": "data_oferta", "exact_today": True},
 }
 
-NAV_LINKS = ["index.html", "ganhos-extras.html", "cupons-extras.html", "last-minute.html"]
+NAV_LINKS = ["index.html", "ganhos-extras.html", "cupons-extras.html", "ofertas-diarias.html"]
 # Termos que o time pediu para NÃO aparecerem como texto das páginas públicas
 FORBIDDEN = [r"budget", r"comiss"]
 BRT = timezone(timedelta(hours=-3))
