@@ -13,6 +13,7 @@ SHEET_NAME = "Last Minute"
 DATA_START_ROW = 2
 OUTPUT_FILE = "last-minute.html"
 BRT = timezone(timedelta(hours=-3))
+SHEET_ERROR_VALUES = {"#N/A", "#DIV/0!", "#VALUE!", "#REF!", "#NAME?", "#NUM!", "#NULL!", "#ERROR!", "#SPILL!", "#CALC!"}
 
 # Colunas (0-based a partir de A)
 COL = {
@@ -59,9 +60,17 @@ def today_brt():
 def safe_get(row, idx, default=""):
     try:
         value = row[idx]
-        return str(value).strip() if value is not None else default
+        if value is None:
+            return default
+        value = str(value).strip()
+        return default if value.upper() in SHEET_ERROR_VALUES else value
     except (IndexError, AttributeError):
         return default
+
+
+def is_valid_offer_url(value):
+    match = re.match(r"^https?://[^/\s]+(?:/[^\s]*)?$", str(value or "").strip(), re.IGNORECASE)
+    return bool(match)
 
 
 def parse_offer_date(value, today=None):
@@ -94,7 +103,8 @@ def parse_rows(rows, today=None):
     unparsed_dates = 0
     other_dates = 0
     today_date_matches = 0
-    missing_products = 0
+    incomplete_offers = 0
+    invalid_urls = 0
     date_samples = []
 
     for offset, row in enumerate(rows):
@@ -116,18 +126,25 @@ def parse_rows(rows, today=None):
             continue
 
         today_date_matches += 1
+        vertical = safe_get(row, COL["vertical"])
         product = safe_get(row, COL["produto"])
-        if not product:
-            missing_products += 1
+        url = safe_get(row, COL["url"])
+        price_from = safe_get(row, COL["preco_de"])
+        price_to = safe_get(row, COL["preco_por"])
+        if not all((vertical, product, url, price_from, price_to)):
+            incomplete_offers += 1
+            continue
+        if not is_valid_offer_url(url):
+            invalid_urls += 1
             continue
 
         items.append({
-            "vertical": safe_get(row, COL["vertical"]) or "Outros",
+            "vertical": vertical,
             "data_oferta": offer_date.strftime("%d/%m/%Y"),
             "produto": product,
-            "url": safe_get(row, COL["url"]),
-            "preco_de": safe_get(row, COL["preco_de"]),
-            "preco_por": safe_get(row, COL["preco_por"]),
+            "url": url,
+            "preco_de": price_from,
+            "preco_por": price_to,
             "cupom": safe_get(row, COL["cupom"]),
             "tipo_cupom": safe_get(row, COL["tipo_cupom"]),
             "desconto": safe_get(row, COL["desconto"]),
@@ -139,7 +156,8 @@ def parse_rows(rows, today=None):
     print(
         f"[Last Minute] hoje={today.isoformat()} linhas_lidas={len(rows)} "
         f"datas_de_hoje={today_date_matches} datas_invalidas={unparsed_dates} "
-        f"outras_datas={other_dates} produtos_vazios={missing_products} itens_publicados={len(items)}"
+        f"outras_datas={other_dates} ofertas_incompletas={incomplete_offers} "
+        f"urls_invalidas={invalid_urls} itens_publicados={len(items)}"
     )
     if not items:
         print(f"[Last Minute] amostras_data={json.dumps(date_samples, ensure_ascii=False)}")
@@ -185,7 +203,17 @@ HTML = """\
     select{{min-width:210px}}
     input{{margin-left:auto;width:min(320px,100%)}}
     input::placeholder{{color:#888}}
-    .list{{max-width:1120px;margin:24px auto;padding:0 24px 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px}}
+    .list{{max-width:1120px;margin:24px auto;padding:0 24px 28px;display:flex;flex-direction:column;gap:14px}}
+    .category-section{{background:#101010;border:1px solid #303030;border-radius:16px;overflow:hidden}}
+    .category-summary{{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;padding:16px 18px;cursor:pointer;background:#171717}}
+    .category-summary::-webkit-details-marker{{display:none}}
+    .category-summary:hover{{background:#202020}}
+    .category-heading{{display:flex;align-items:center;gap:10px;min-width:0;font-size:15px;font-weight:900}}
+    .category-dot{{width:9px;height:9px;border-radius:50%;background:var(--yellow);flex:none;box-shadow:0 0 12px rgba(255,230,0,.35)}}
+    .category-count{{color:#aaa;font-size:11px;font-weight:700;white-space:nowrap}}
+    .category-chevron{{color:var(--yellow);font-size:17px;transition:transform .18s ease}}
+    .category-section[open] .category-chevron{{transform:rotate(180deg)}}
+    .group-grid{{padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}}
     .card{{background:linear-gradient(155deg,#191919 0%,#111 100%);border:1px solid #353535;border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}}
     .card-top,.prices,.meta-row{{display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
     .card-top{{justify-content:space-between;align-items:flex-start}}
@@ -209,7 +237,7 @@ HTML = """\
     .link.disabled{{background:#2b2b2b;color:#888;pointer-events:none}}
     .empty{{grid-column:1/-1;text-align:center;padding:56px 20px;border:1px dashed #444;border-radius:var(--radius);color:#aaa;font-weight:700}}
     .footer{{text-align:center;color:#777;font-size:11px;font-weight:600;padding:10px 24px 30px}}
-    @media(max-width:700px){{.hdr{{padding:10px 16px;flex-wrap:wrap}}.nav{{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}}.nav a{{white-space:nowrap}}.updated{{margin-left:auto}}.hero,.toolbar{{padding-left:16px;padding-right:16px}}.list{{padding-left:16px;padding-right:16px;grid-template-columns:1fr}}input{{margin-left:0;width:100%}}}}
+    @media(max-width:700px){{.hdr{{padding:10px 16px;flex-wrap:wrap}}.nav{{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}}.nav a{{white-space:nowrap}}.updated{{margin-left:auto}}.hero,.toolbar{{padding-left:16px;padding-right:16px}}.list{{padding-left:16px;padding-right:16px}}.group-grid{{padding:10px;grid-template-columns:1fr}}.category-summary{{padding:14px}}input{{margin-left:0;width:100%}}}}
   </style>
 </head>
 <body>
@@ -252,16 +280,25 @@ function render(){{
   const items=ITEMS.filter(item=>(!category||item.vertical===category)&&(!query||[item.produto,item.vertical,item.tipo_cupom,item.desconto,item.codigo,item.informacoes_extras].join(' ').toLocaleLowerCase('pt-BR').includes(query)));
   document.getElementById('count').textContent=items.length;
   const list=document.getElementById('list');
-  if(!items.length){{list.innerHTML='<div class="empty">Nenhuma oferta válida para hoje.</div>';return}}
-  list.innerHTML=items.map(item=>{{
-    const url=safeUrl(item.url);
-    const couponLabel=item.cupom||'';
-    const details=[detail('Cupom',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
-    const detailsBlock=details?`<div class="details">${{details}}</div>`:'';
-    const prices=`<div class="prices">${{item.preco_de?`<div class="price"><span class="price-label">De</span><span class="price-value">${{esc(item.preco_de)}}</span></div>`:''}}${{item.preco_por?`<div class="price"><span class="price-label">Por</span><span class="price-value sale">${{esc(item.preco_por)}}</span></div>`:''}}</div>`;
-    const extra=item.informacoes_extras?`<div class="extra">${{esc(item.informacoes_extras)}}</div>`:'';
-    const link=url?`<a class="link" href="${{esc(url)}}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`:'<span class="link disabled">Link indisponível</span>';
-    return `<article class="card"><div class="card-top"><span class="vertical">${{esc(item.vertical)}}</span><span class="offer-date">Oferta de ${{esc(item.data_oferta)}}</span></div><h2 class="product">${{esc(item.produto)}}</h2>${{prices}}${{detailsBlock}}${{extra}}${{link}}</article>`;
+  if(!items.length){{list.innerHTML='<div class="empty">Nenhuma oferta completa e válida para hoje.</div>';return}}
+  const grouped=new Map();
+  for(const item of items){{
+    if(!grouped.has(item.vertical))grouped.set(item.vertical,[]);
+    grouped.get(item.vertical).push(item);
+  }}
+  list.innerHTML=[...grouped.entries()].sort(([a],[b])=>a.localeCompare(b,'pt-BR')).map(([name,groupItems])=>{{
+    const open=(!category||name===category)?' open':'';
+    const cards=groupItems.map(item=>{{
+      const url=safeUrl(item.url);
+      const couponLabel=item.cupom||'';
+      const details=[detail('Cupom',couponLabel),detail('Tipo de cupom',item.tipo_cupom),detail('Desconto',item.desconto),detail('Código',item.codigo,'code')].filter(Boolean).join('');
+      const detailsBlock=details?`<div class="details">${{details}}</div>`:'';
+      const prices=`<div class="prices"><div class="price"><span class="price-label">De</span><span class="price-value">${{esc(item.preco_de)}}</span></div><div class="price"><span class="price-label">Por</span><span class="price-value sale">${{esc(item.preco_por)}}</span></div></div>`;
+      const extra=item.informacoes_extras?`<div class="extra">${{esc(item.informacoes_extras)}}</div>`:'';
+      const link=`<a class="link" href="${{esc(url)}}" target="_blank" rel="noopener noreferrer">Ver oferta</a>`;
+      return `<article class="card"><div class="card-top"><span class="vertical">${{esc(item.vertical)}}</span><span class="offer-date">Oferta de ${{esc(item.data_oferta)}}</span></div><h2 class="product">${{esc(item.produto)}}</h2>${{prices}}${{detailsBlock}}${{extra}}${{link}}</article>`;
+    }}).join('');
+    return `<section class="category-group"><details class="category-section"${{open}}><summary class="category-summary"><span class="category-heading"><span class="category-dot"></span>${{esc(name)}}</span><span class="category-count">${{groupItems.length}} ofertas <span class="category-chevron" aria-hidden="true">⌄</span></span></summary><div class="group-grid">${{cards}}</div></details></section>`;
   }}).join('');
 }}
 categorySelect.addEventListener('change',render);
