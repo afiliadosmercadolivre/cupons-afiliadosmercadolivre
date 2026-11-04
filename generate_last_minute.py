@@ -9,7 +9,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 SPREADSHEET_ID = "1ipuukzdhcKtTgqrK5MowmRXculVbYnLBSy1ULQEOZjY"
-SHEET_NAME = "Ofertas de hoje"
+SHEET_NAME = "Last Minute"
 DATA_START_ROW = 2
 OUTPUT_FILE = "last-minute.html"
 BRT = timezone(timedelta(hours=-3))
@@ -127,7 +127,7 @@ HTML = """\
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="theme-color" content="#050505"/>
-  <title>Last Minute — Ofertas de Hoje | Afiliados Mercado Livre</title>
+  <title>Ofertas de hoje — Afiliados Mercado Livre</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -188,12 +188,12 @@ HTML = """\
 </head>
 <body>
 <header class="hdr">
-  <a class="brand" href="last-minute.html"><span class="brand-pill">LAST MINUTE</span><span class="brand-sub">Black Friday • Afiliados</span></a>
+  <a class="brand" href="last-minute.html"><span class="brand-pill">OFERTAS DE HOJE</span><span class="brand-sub">Black Friday • Afiliados</span></a>
   <nav class="nav">
     <a href="index.html">Cupons</a>
     <a href="ganhos-extras.html">Ganhos Extras</a>
     <a href="cupons-extras.html">Cupons Extras</a>
-    <a class="active" href="last-minute.html">Last Minute</a>
+    <a class="active" href="last-minute.html">Ofertas de hoje</a>
   </nav>
   <span class="updated">Atualizado em {generated_at}</span>
 </header>
